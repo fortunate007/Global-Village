@@ -1,0 +1,20 @@
+<%- include('partials/header') %>
+
+<div class="auth-card">
+  <h1>Welcome back</h1>
+  <p class="subtitle">Log in to <%= appName %></p>
+
+  <form action="/login" method="POST" class="stack-form">
+    <label for="username">Username or email</label>
+    <input type="text" id="username" name="username" required autofocus />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required />
+
+    <button type="submit" class="btn btn-primary">Log In</button>
+  </form>
+
+  <p class="switch-link">No account? <a href="/register">Register here</a></p>
+</div>
+
+<%- include('partials/footer') %>

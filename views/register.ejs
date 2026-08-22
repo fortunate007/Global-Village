@@ -1,0 +1,38 @@
+<%- include('partials/header') %>
+
+<div class="auth-card">
+  <h1>Join the village</h1>
+  <p class="subtitle">Create your <%= appName %> account</p>
+
+  <% if (typeof errors !== 'undefined' && errors.length) { %>
+    <ul class="error-list">
+      <% errors.forEach(function(e) { %><li><%= e %></li><% }) %>
+    </ul>
+  <% } %>
+
+  <form action="/register" method="POST" class="stack-form">
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" required
+      value="<%= typeof formData !== 'undefined' ? formData.username || '' : '' %>" />
+
+    <label for="displayName">Display name</label>
+    <input type="text" id="displayName" name="displayName" placeholder="How others will see you"
+      value="<%= typeof formData !== 'undefined' ? formData.displayName || '' : '' %>" />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required
+      value="<%= typeof formData !== 'undefined' ? formData.email || '' : '' %>" />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required minlength="6" />
+
+    <label for="confirmPassword">Confirm password</label>
+    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6" />
+
+    <button type="submit" class="btn btn-primary">Create Account</button>
+  </form>
+
+  <p class="switch-link">Already have an account? <a href="/login">Log in</a></p>
+</div>
+
+<%- include('partials/footer') %>

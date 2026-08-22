@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+
+<div class="auth-card wide">
+  <h1>Start a group chat</h1>
+
+  <form action="/groups" method="POST" class="stack-form">
+    <label for="name">Group name</label>
+    <input type="text" id="name" name="name" required placeholder="e.g. Weekend Plans" />
+
+    <label>Members</label>
+    <ul class="checkbox-list">
+      <% users.forEach(function(u) { %>
+        <li>
+          <label class="checkbox-row">
+            <input type="checkbox" name="memberIds" value="<%= u.id %>" />
+            <img class="avatar avatar-sm" src="<%= u.avatar_url %>" alt="" />
+            <span><%= u.display_name %> <span class="tile-sub">@<%= u.username %></span></span>
+          </label>
+        </li>
+      <% }) %>
+    </ul>
+
+    <button type="submit" class="btn btn-primary">Create Group</button>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

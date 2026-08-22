@@ -1,0 +1,30 @@
+{
+  "name": "global-village",
+  "version": "1.0.0",
+  "description": "A messaging app where users can chat, customize profiles, and create group chats.",
+  "author": "Newton Miriti",
+  "license": "MIT",
+  "main": "src/app.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node src/app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^13.0.3",
+    "connect-flash": "^0.1.1",
+    "connect-sqlite3": "^0.9.18",
+    "dotenv": "^16.6.1",
+    "ejs": "^3.1.10",
+    "express": "^4.22.2",
+    "express-session": "^1.19.0",
+    "multer": "^2.2.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["messaging", "chat", "express", "nodejs", "the-odin-project"]
+}

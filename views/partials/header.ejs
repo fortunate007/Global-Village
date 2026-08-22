@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> · <%= appName %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="brand-mark">GV</span>
+      <span class="brand-name"><%= appName %></span>
+    </a>
+    <% if (currentUser) { %>
+      <nav class="topnav">
+        <a href="/users">People</a>
+        <a href="/groups/new">New Group</a>
+        <a href="/profile">Edit Profile</a>
+        <a class="me" href="/profile/<%= currentUser.id %>">
+          <img class="avatar avatar-sm" src="<%= currentUser.avatar_url %>" alt="" />
+          <%= currentUser.display_name %>
+        </a>
+        <form action="/logout" method="POST" class="inline-form">
+          <button type="submit" class="link-btn">Log out</button>
+        </form>
+      </nav>
+    <% } %>
+  </header>
+  <main class="container">
+    <% if (typeof successMsg !== 'undefined' && successMsg.length) { %>
+      <div class="flash flash-success"><%= successMsg[0] %></div>
+    <% } %>
+    <% if (typeof errorMsg !== 'undefined' && errorMsg.length) { %>
+      <div class="flash flash-error"><%= errorMsg[0] %></div>
+    <% } %>

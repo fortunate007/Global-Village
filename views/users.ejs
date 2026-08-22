@@ -1,0 +1,60 @@
+<%- include('partials/header') %>
+
+<div class="page-head">
+  <h1>People</h1>
+  <a href="/groups/new" class="btn btn-secondary">+ New group</a>
+</div>
+
+<% if (groups.length) { %>
+  <h2 class="section-title">Your groups</h2>
+  <ul class="tile-list">
+    <% groups.forEach(function(g) { %>
+      <li class="tile">
+        <a class="tile-link" href="/groups/<%= g.id %>">
+          <img class="avatar" src="<%= g.avatar_url %>" alt="" />
+          <span class="tile-name"><%= g.name %></span>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<h2 class="section-title">Everyone</h2>
+<ul class="tile-list" id="user-list">
+  <% users.forEach(function(u) { %>
+    <li class="tile" data-user-id="<%= u.id %>">
+      <a class="tile-link" href="/messages/<%= u.id %>">
+        <span class="avatar-wrap">
+          <img class="avatar" src="<%= u.avatar_url %>" alt="" />
+          <span class="status-dot <%= u.isOnline ? 'online' : 'offline' %>"></span>
+        </span>
+        <span class="tile-info">
+          <span class="tile-name"><%= u.display_name %></span>
+          <span class="tile-sub">@<%= u.username %><% if (u.status_message) { %> &middot; <%= u.status_message %><% } %></span>
+        </span>
+      </a>
+      <form action="/users/<%= u.id %>/<%= u.isFriend ? 'unfriend' : 'friend' %>" method="POST" class="inline-form">
+        <button type="submit" class="btn btn-tiny"><%= u.isFriend ? 'Remove friend' : 'Add friend' %></button>
+      </form>
+    </li>
+  <% }) %>
+</ul>
+
+<script>
+  // Poll for online status every 15s without a full page reload
+  async function refreshOnlineStatus() {
+    try {
+      const res = await fetch('/api/users/online');
+      const statuses = await res.json();
+      statuses.forEach(({ id, isOnline }) => {
+        const li = document.querySelector(`.tile[data-user-id="${id}"]`);
+        if (!li) return;
+        const dot = li.querySelector('.status-dot');
+        if (dot) dot.className = 'status-dot ' + (isOnline ? 'online' : 'offline');
+      });
+    } catch (e) { /* ignore transient errors */ }
+  }
+  setInterval(refreshOnlineStatus, 15000);
+</script>
+
+<%- include('partials/footer') %>

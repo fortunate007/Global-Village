@@ -1,0 +1,21 @@
+<%- include('partials/header') %>
+
+<div class="auth-card wide profile-card">
+  <img class="avatar avatar-lg" src="<%= profileUser.avatar_url %>" alt="" />
+  <h1><%= profileUser.display_name %></h1>
+  <p class="subtitle">@<%= profileUser.username %></p>
+  <% if (profileUser.status_message) { %>
+    <p class="status-message">&ldquo;<%= profileUser.status_message %>&rdquo;</p>
+  <% } %>
+  <% if (profileUser.bio) { %>
+    <p class="bio"><%= profileUser.bio %></p>
+  <% } %>
+
+  <% if (currentUser.id !== profileUser.id) { %>
+    <a class="btn btn-primary" href="/messages/<%= profileUser.id %>">Send message</a>
+  <% } else { %>
+    <a class="btn btn-secondary" href="/profile">Edit profile</a>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

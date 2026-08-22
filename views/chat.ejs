@@ -1,0 +1,114 @@
+<%- include('partials/header') %>
+
+<div class="chat-shell">
+  <div class="chat-header">
+    <% if (chatType === 'dm') { %>
+      <img class="avatar" src="<%= other.avatar_url %>" alt="" />
+      <div>
+        <h1><a href="/profile/<%= other.id %>"><%= other.display_name %></a></h1>
+        <p class="tile-sub">@<%= other.username %></p>
+      </div>
+    <% } else { %>
+      <img class="avatar" src="<%= group.avatar_url %>" alt="" />
+      <div>
+        <h1><%= group.name %></h1>
+        <p class="tile-sub">
+          <%= group.members.length %> members:
+          <%= group.members.map(function(m){ return m.display_name }).join(', ') %>
+        </p>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="message-list" id="message-list">
+    <% messages.forEach(function(m) { %>
+      <div class="message <%= m.sender_id === currentUser.id ? 'mine' : '' %>" data-id="<%= m.id %>">
+        <img class="avatar avatar-sm" src="<%= m.sender_avatar %>" alt="" />
+        <div class="bubble">
+          <% if (chatType === 'group' && m.sender_id !== currentUser.id) { %>
+            <div class="bubble-sender"><%= m.sender_name %></div>
+          <% } %>
+          <% if (m.body) { %><div class="bubble-text"><%= m.body %></div><% } %>
+          <% if (m.image_url) { %><img class="bubble-image" src="<%= m.image_url %>" alt="Shared image" /><% } %>
+          <div class="bubble-time"><%= new Date(m.created_at + 'Z').toLocaleString() %></div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <form
+    class="chat-form"
+    action="<%= chatType === 'dm' ? '/messages/' + chatTargetId : '/groups/' + chatTargetId %>"
+    method="POST"
+    enctype="multipart/form-data"
+  >
+    <input type="text" name="body" placeholder="Type a message&hellip;" autocomplete="off" autofocus />
+    <label class="file-btn" title="Attach an image">
+      📎<input type="file" name="image" accept="image/*" />
+    </label>
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+</div>
+
+<script>
+  const chatType = <%- JSON.stringify(chatType) %>;
+  const targetId = <%- JSON.stringify(chatTargetId) %>;
+  const myId = <%- JSON.stringify(currentUser.id) %>;
+  const list = document.getElementById('message-list');
+  list.scrollTop = list.scrollHeight;
+
+  function lastMessageId() {
+    const items = list.querySelectorAll('.message');
+    if (!items.length) return 0;
+    return Number(items[items.length - 1].dataset.id) || 0;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderMessage(m) {
+    const mine = m.sender_id === myId;
+    const wrap = document.createElement('div');
+    wrap.className = 'message' + (mine ? ' mine' : '');
+    wrap.dataset.id = m.id;
+
+    const senderLine =
+      chatType === 'group' && !mine
+        ? `<div class="bubble-sender">${escapeHtml(m.sender_name)}</div>`
+        : '';
+    const textLine = m.body ? `<div class="bubble-text">${escapeHtml(m.body)}</div>` : '';
+    const imageLine = m.image_url
+      ? `<img class="bubble-image" src="${m.image_url}" alt="Shared image" />`
+      : '';
+    const time = new Date(m.created_at + 'Z').toLocaleString();
+
+    wrap.innerHTML = `
+      <img class="avatar avatar-sm" src="${m.sender_avatar}" alt="" />
+      <div class="bubble">
+        ${senderLine}
+        ${textLine}
+        ${imageLine}
+        <div class="bubble-time">${time}</div>
+      </div>`;
+    return wrap;
+  }
+
+  async function poll() {
+    try {
+      const base = chatType === 'dm' ? `/api/messages/${targetId}` : `/api/groups/${targetId}`;
+      const res = await fetch(`${base}/since/${lastMessageId()}`);
+      const newMessages = await res.json();
+      if (newMessages.length) {
+        const wasAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
+        newMessages.forEach((m) => list.appendChild(renderMessage(m)));
+        if (wasAtBottom) list.scrollTop = list.scrollHeight;
+      }
+    } catch (e) { /* ignore transient errors */ }
+  }
+  setInterval(poll, 3000);
+</script>
+
+<%- include('partials/footer') %>
