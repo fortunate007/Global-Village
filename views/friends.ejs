@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+
+<div class="page-head">
+  <h1>Friends</h1>
+  <a href="/friends/requests" class="btn btn-secondary">Requests</a>
+</div>
+
+<% if (!friends.length) { %>
+  <p class="muted">You have no friends yet. Find people on the <a href="/users">People</a> page and send a request.</p>
+<% } else { %>
+  <ul class="tile-list">
+    <% friends.forEach(function(f) { %>
+      <li class="tile">
+        <a class="tile-link" href="/messages/<%= f.id %>">
+          <span class="avatar-wrap">
+            <img class="avatar" src="<%= f.avatar_url %>" alt="" />
+            <span class="status-dot <%= f.isOnline ? 'online' : 'offline' %>"></span>
+          </span>
+          <span class="tile-info">
+            <span class="tile-name"><%= f.display_name %></span>
+            <span class="tile-sub">@<%= f.username %><% if (f.status_message) { %> &middot; <%= f.status_message %><% } %></span>
+          </span>
+        </a>
+        <form action="/users/<%= f.id %>/unfriend" method="POST" class="inline-form">
+          <input type="hidden" name="next" value="friends" />
+          <button type="submit" class="btn btn-tiny">Remove friend</button>
+        </form>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<%- include('partials/footer') %>

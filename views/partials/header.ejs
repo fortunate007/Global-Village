@@ -16,6 +16,7 @@
     <% if (currentUser) { %>
       <nav class="topnav">
         <a href="/users">People</a>
+        <a href="/friends">Friends<% if (pendingRequests > 0) { %> <span class="badge"><%= pendingRequests %></span><% } %></a>
         <a href="/groups/new">New Group</a>
         <a href="/profile">Edit Profile</a>
         <a class="me" href="/profile/<%= currentUser.id %>">

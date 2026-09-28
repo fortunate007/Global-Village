@@ -33,9 +33,19 @@
           <span class="tile-sub">@<%= u.username %><% if (u.status_message) { %> &middot; <%= u.status_message %><% } %></span>
         </span>
       </a>
-      <form action="/users/<%= u.id %>/<%= u.isFriend ? 'unfriend' : 'friend' %>" method="POST" class="inline-form">
-        <button type="submit" class="btn btn-tiny"><%= u.isFriend ? 'Remove friend' : 'Add friend' %></button>
-      </form>
+      <% if (u.relationship === 'friend') { %>
+        <form action="/users/<%= u.id %>/unfriend" method="POST" class="inline-form">
+          <button type="submit" class="btn btn-tiny">Remove friend</button>
+        </form>
+      <% } else if (u.relationship === 'sent') { %>
+        <a href="/friends/requests" class="btn btn-tiny">Request sent</a>
+      <% } else if (u.relationship === 'received') { %>
+        <a href="/friends/requests" class="btn btn-tiny">Respond to request</a>
+      <% } else { %>
+        <form action="/friends/request/<%= u.id %>" method="POST" class="inline-form">
+          <button type="submit" class="btn btn-tiny">Add friend</button>
+        </form>
+      <% } %>
     </li>
   <% }) %>
 </ul>

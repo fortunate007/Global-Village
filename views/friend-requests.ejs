@@ -1,0 +1,55 @@
+<%- include('partials/header') %>
+
+<div class="page-head">
+  <h1>Friend requests</h1>
+  <a href="/friends" class="btn btn-secondary">Friends</a>
+</div>
+
+<h2 class="section-title">Received (<%= incoming.length %>)</h2>
+<% if (!incoming.length) { %>
+  <p class="muted">No pending requests.</p>
+<% } else { %>
+  <ul class="tile-list">
+    <% incoming.forEach(function(r) { %>
+      <li class="tile">
+        <a class="tile-link" href="/profile/<%= r.id %>">
+          <img class="avatar" src="<%= r.avatar_url %>" alt="" />
+          <span class="tile-info">
+            <span class="tile-name"><%= r.display_name %></span>
+            <span class="tile-sub">@<%= r.username %></span>
+          </span>
+        </a>
+        <form action="/friends/requests/<%= r.request_id %>/accept" method="POST" class="inline-form">
+          <button type="submit" class="btn btn-tiny">Accept</button>
+        </form>
+        <form action="/friends/requests/<%= r.request_id %>/decline" method="POST" class="inline-form">
+          <button type="submit" class="btn btn-tiny">Decline</button>
+        </form>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<h2 class="section-title">Sent (<%= outgoing.length %>)</h2>
+<% if (!outgoing.length) { %>
+  <p class="muted">You have no outgoing requests.</p>
+<% } else { %>
+  <ul class="tile-list">
+    <% outgoing.forEach(function(r) { %>
+      <li class="tile">
+        <a class="tile-link" href="/profile/<%= r.id %>">
+          <img class="avatar" src="<%= r.avatar_url %>" alt="" />
+          <span class="tile-info">
+            <span class="tile-name"><%= r.display_name %></span>
+            <span class="tile-sub">@<%= r.username %></span>
+          </span>
+        </a>
+        <form action="/friends/requests/<%= r.request_id %>/cancel" method="POST" class="inline-form">
+          <button type="submit" class="btn btn-tiny">Cancel</button>
+        </form>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<%- include('partials/footer') %>
