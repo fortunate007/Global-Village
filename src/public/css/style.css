@@ -196,6 +196,11 @@ a:hover { text-decoration: underline; }
 .bubble-text { white-space: pre-wrap; word-break: break-word; }
 .bubble-image { max-width: 220px; border-radius: 8px; margin-top: 0.35rem; display: block; }
 .bubble-time { font-size: 0.68rem; opacity: 0.7; margin-top: 0.25rem; }
+.bubble-edited { opacity: 0.7; font-style: italic; }
+.bubble-deleted { opacity: 0.6; font-style: italic; }
+.bubble-actions { display: flex; gap: 0.6rem; margin-top: 0.2rem; }
+.bubble-actions .link-btn { font-size: 0.68rem; padding: 0; }
+.edit-form { gap: 0.5rem; }
 
 .chat-form {
   display: flex; align-items: center; gap: 0.5rem;
@@ -217,3 +222,7 @@ a:hover { text-decoration: underline; }
   .chat-shell { height: 78vh; }
   .message { max-width: 92%; }
 }
+
+.badge { display: inline-block; min-width: 1.2rem; padding: 0 0.35rem; border-radius: 999px; background: var(--clay); color: var(--white); font-size: 0.7rem; font-weight: 700; text-align: center; line-height: 1.2rem; }
+a.btn-tiny { display: inline-block; text-decoration: none; }
+.muted { color: var(--ink-soft); }

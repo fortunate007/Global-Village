@@ -28,9 +28,24 @@
           <% if (chatType === 'group' && m.sender_id !== currentUser.id) { %>
             <div class="bubble-sender"><%= m.sender_name %></div>
           <% } %>
-          <% if (m.body) { %><div class="bubble-text"><%= m.body %></div><% } %>
-          <% if (m.image_url) { %><img class="bubble-image" src="<%= m.image_url %>" alt="Shared image" /><% } %>
-          <div class="bubble-time"><%= new Date(m.created_at + 'Z').toLocaleString() %></div>
+          <% if (m.deleted_at) { %>
+            <div class="bubble-text bubble-deleted">Message deleted</div>
+          <% } else { %>
+            <% if (m.body) { %><div class="bubble-text"><%= m.body %></div><% } %>
+            <% if (m.image_url) { %><img class="bubble-image" src="<%= m.image_url %>" alt="Shared image" /><% } %>
+          <% } %>
+          <div class="bubble-time">
+            <%= new Date(m.created_at + 'Z').toLocaleString() %>
+            <% if (m.edited_at && !m.deleted_at) { %><span class="bubble-edited">(edited)</span><% } %>
+          </div>
+          <% if (m.sender_id === currentUser.id && !m.deleted_at && chatType === 'dm') { %>
+            <div class="bubble-actions">
+              <button type="button" class="link-btn edit-msg-btn" data-id="<%= m.id %>" data-body="<%= m.body %>">Edit</button>
+              <form action="/messages/<%= chatTargetId %>/<%= m.id %>/delete" method="POST" class="inline-form">
+                <button type="submit" class="link-btn" onclick="return confirm('Delete this message?')">Delete</button>
+              </form>
+            </div>
+          <% } %>
         </div>
       </div>
     <% }) %>
@@ -47,6 +62,12 @@
       📎<input type="file" name="image" accept="image/*" />
     </label>
     <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+
+  <form id="edit-message-form" class="chat-form edit-form" method="POST" style="display:none;">
+    <input type="text" name="body" id="edit-message-input" autocomplete="off" />
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" id="edit-message-cancel" class="btn btn-secondary">Cancel</button>
   </form>
 </div>
 
@@ -109,6 +130,30 @@
     } catch (e) { /* ignore transient errors */ }
   }
   setInterval(poll, 3000);
+
+  // Inline message editing (DM chats only, since edit routes are DM-only for now)
+  if (chatType === 'dm') {
+    const editForm = document.getElementById('edit-message-form');
+    const editInput = document.getElementById('edit-message-input');
+    const cancelBtn = document.getElementById('edit-message-cancel');
+    const sendForm = document.querySelector('.chat-form:not(.edit-form)');
+
+    list.addEventListener('click', (e) => {
+      const btn = e.target.closest('.edit-msg-btn');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      editForm.action = `/messages/${targetId}/${id}/edit`;
+      editInput.value = btn.dataset.body;
+      editForm.style.display = 'flex';
+      sendForm.style.display = 'none';
+      editInput.focus();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      editForm.style.display = 'none';
+      sendForm.style.display = 'flex';
+    });
+  }
 </script>
 
 <%- include('partials/footer') %>

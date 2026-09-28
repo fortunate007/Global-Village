@@ -2,6 +2,9 @@ const express = require('express');
 const db = require('../db');
 const { ensureAuthenticated } = require('../middleware/auth');
 const { chatImageUpload } = require('../config/upload');
+const { withinLength } = require('../utils/validators');
+
+const MAX_MESSAGE_LENGTH = 2000;
 
 const router = express.Router();
 
@@ -47,6 +50,10 @@ router.post(
     if (!body && !imageUrl) {
       return res.redirect(`/messages/${otherId}`);
     }
+    if (!withinLength(body, MAX_MESSAGE_LENGTH)) {
+      req.flash('error', `Messages must be ${MAX_MESSAGE_LENGTH} characters or fewer.`);
+      return res.redirect(`/messages/${otherId}`);
+    }
 
     const other = db.prepare('SELECT id FROM users WHERE id = ?').get(otherId);
     if (!other) return res.redirect('/users');
@@ -58,6 +65,49 @@ router.post(
     res.redirect(`/messages/${otherId}`);
   }
 );
+
+router.post('/messages/:userId/:messageId/edit', ensureAuthenticated, (req, res) => {
+  const otherId = Number(req.params.userId);
+  const messageId = Number(req.params.messageId);
+  const body = (req.body.body || '').trim();
+
+  if (!body) {
+    req.flash('error', 'Message cannot be empty.');
+    return res.redirect(`/messages/${otherId}`);
+  }
+  if (!withinLength(body, MAX_MESSAGE_LENGTH)) {
+    req.flash('error', `Messages must be ${MAX_MESSAGE_LENGTH} characters or fewer.`);
+    return res.redirect(`/messages/${otherId}`);
+  }
+
+  const message = db.prepare('SELECT sender_id, deleted_at FROM messages WHERE id = ?').get(messageId);
+  if (!message || message.sender_id !== req.user.id || message.deleted_at) {
+    req.flash('error', 'You can only edit your own messages.');
+    return res.redirect(`/messages/${otherId}`);
+  }
+
+  db.prepare('UPDATE messages SET body = ?, edited_at = CURRENT_TIMESTAMP WHERE id = ?').run(
+    body,
+    messageId
+  );
+  res.redirect(`/messages/${otherId}`);
+});
+
+router.post('/messages/:userId/:messageId/delete', ensureAuthenticated, (req, res) => {
+  const otherId = Number(req.params.userId);
+  const messageId = Number(req.params.messageId);
+
+  const message = db.prepare('SELECT sender_id FROM messages WHERE id = ?').get(messageId);
+  if (!message || message.sender_id !== req.user.id) {
+    req.flash('error', 'You can only delete your own messages.');
+    return res.redirect(`/messages/${otherId}`);
+  }
+
+  db.prepare(
+    `UPDATE messages SET body = '', image_url = NULL, deleted_at = CURRENT_TIMESTAMP WHERE id = ?`
+  ).run(messageId);
+  res.redirect(`/messages/${otherId}`);
+});
 
 // Polling endpoint: fetch messages newer than a given id (used by frontend JS)
 router.get('/api/messages/:userId/since/:lastId', ensureAuthenticated, (req, res) => {
