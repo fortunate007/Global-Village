@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
 const passport = require('passport');
 const flash = require('connect-flash');
 
@@ -21,9 +20,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Tests use the in-memory session store (no native module, no file on disk).
+// Everywhere else, sessions persist to SQLite so logins survive a restart.
+const isTest = process.env.NODE_ENV === 'test';
+const sessionStore = isTest
+  ? undefined
+  : new (require('connect-sqlite3')(session))({
+      db: 'sessions.db',
+      dir: path.join(__dirname, '..', 'data'),
+    });
+
 app.use(
   session({
-    store: new SQLiteStore({ db: 'sessions.db', dir: path.join(__dirname, '..', 'data') }),
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || 'global-village-dev-secret',
     resave: false,
     saveUninitialized: false,
@@ -42,12 +51,16 @@ app.use((req, res, next) => {
   res.locals.successMsg = req.flash('success');
   res.locals.errorMsg = req.flash('error');
   res.locals.appName = 'Global Village';
+  res.locals.pendingRequests = req.user
+    ? db.prepare('SELECT COUNT(*) AS n FROM friend_requests WHERE recipient_id = ?').get(req.user.id).n
+    : 0;
   next();
 });
 
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/profile'));
 app.use('/', require('./routes/users'));
+app.use('/', require('./routes/friends'));
 app.use('/', require('./routes/messages'));
 app.use('/', require('./routes/groups'));
 
@@ -57,6 +70,10 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err);
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    req.flash('error', 'That file is too large. Images must be under 5MB.');
+    return res.redirect('back');
+  }
   if (err.message && err.message.includes('Only image files')) {
     req.flash('error', err.message);
     return res.redirect('back');
@@ -65,8 +82,10 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Global Village running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Global Village running at http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;
