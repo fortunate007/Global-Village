@@ -3,6 +3,7 @@ const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const db = require('../db');
 const { ensureGuest } = require('../middleware/auth');
+const { isValidUsername, isValidEmail, isValidPassword, isValidDisplayName } = require('../utils/validators');
 
 const router = express.Router();
 
@@ -21,11 +22,17 @@ router.post('/register', ensureGuest, (req, res) => {
   if (!username || !email || !password || !confirmPassword) {
     errors.push('Please fill in all required fields.');
   }
-  if (username && !/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+  if (username && !isValidUsername(username)) {
     errors.push('Username must be 3-20 characters: letters, numbers, underscores only.');
   }
-  if (password && password.length < 6) {
-    errors.push('Password must be at least 6 characters.');
+  if (email && !isValidEmail(email)) {
+    errors.push('Please enter a valid email address.');
+  }
+  if (displayName && !isValidDisplayName(displayName)) {
+    errors.push('Display name must be 1-40 characters.');
+  }
+  if (password && !isValidPassword(password)) {
+    errors.push('Password must be 6-72 characters.');
   }
   if (password !== confirmPassword) {
     errors.push('Passwords do not match.');

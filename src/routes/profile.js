@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { ensureAuthenticated } = require('../middleware/auth');
 const { avatarUpload } = require('../config/upload');
+const { isValidDisplayName, withinLength } = require('../utils/validators');
 
 const router = express.Router();
 
@@ -11,12 +12,26 @@ router.get('/profile', ensureAuthenticated, (req, res) => {
 
 router.post('/profile', ensureAuthenticated, avatarUpload.single('avatar'), (req, res) => {
   const { displayName, bio, statusMessage } = req.body;
+
+  if (!isValidDisplayName(displayName)) {
+    req.flash('error', 'Display name must be 1-40 characters.');
+    return res.redirect('/profile');
+  }
+  if (!withinLength(bio, 500)) {
+    req.flash('error', 'Bio must be 500 characters or fewer.');
+    return res.redirect('/profile');
+  }
+  if (!withinLength(statusMessage, 80)) {
+    req.flash('error', 'Status message must be 80 characters or fewer.');
+    return res.redirect('/profile');
+  }
+
   const avatarUrl = req.file ? `/uploads/avatars/${req.file.filename}` : req.user.avatar_url;
 
   db.prepare(
     `UPDATE users SET display_name = ?, bio = ?, status_message = ?, avatar_url = ? WHERE id = ?`
   ).run(
-    (displayName || req.user.display_name).trim(),
+    displayName.trim(),
     (bio || '').trim(),
     (statusMessage || '').trim(),
     avatarUrl,

@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { ensureAuthenticated } = require('../middleware/auth');
 const { chatImageUpload } = require('../config/upload');
+const { withinLength } = require('../utils/validators');
 
 const router = express.Router();
 
@@ -26,6 +27,10 @@ router.post('/groups', ensureAuthenticated, (req, res) => {
 
   if (!name) {
     req.flash('error', 'Group needs a name.');
+    return res.redirect('/groups/new');
+  }
+  if (!withinLength(name, 60)) {
+    req.flash('error', 'Group name must be 60 characters or fewer.');
     return res.redirect('/groups/new');
   }
   if (memberIds.length === 0) {
