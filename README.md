@@ -54,15 +54,6 @@ group_members    group_id, user_id, joined_at
 friends          user_id, friend_id, created_at
 ```
 
-## Local setup
-
-```bash
-git clone <your-repo-url>
-cd global-village
-npm install
-cp .env.example .env   # then edit SESSION_SECRET
-npm start
-```
 
 The app runs at `http://localhost:3000`. A SQLite database file is created
 automatically at `data/global-village.db` on first run — no separate database
@@ -93,21 +84,11 @@ data/                   SQLite files (gitignored, created at runtime)
 ## Deploying
 
 This app needs a host that supports persistent disk (for the SQLite file and
-uploaded images) and lets you run a long-lived Node process — e.g.
+uploaded images) and lets you run a long-lived Node process  e.g.
 **Render**, **Railway**, or a small VPS/**Fly.io** volume. Plain serverless
 platforms (like Vercel's default functions) won't work well here because the
 filesystem isn't persistent and `better-sqlite3` needs a native build step.
 
-General steps (Render as an example):
-
-1. Push this repo to GitHub.
-2. Create a new **Web Service** on Render, pointing at the repo.
-3. Build command: `npm install`
-4. Start command: `npm start`
-5. Add an environment variable `SESSION_SECRET` with a long random string.
-6. Add a **persistent disk** mounted at `/opt/render/project/src/data` (and
-   optionally `/opt/render/project/src/src/public/uploads`) so the database
-   and uploaded images survive deploys/restarts.
 
 ## Extra credit implemented
 
