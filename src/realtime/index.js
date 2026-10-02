@@ -17,7 +17,6 @@ function createSocketServer(httpServer, sessionMiddleware, options = {}) {
   }
 
   const io = new Server(httpServer, {
-    serveClient: false,
     cors: options.cors || { origin: false },
     ...options,
   });

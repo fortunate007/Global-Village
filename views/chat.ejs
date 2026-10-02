@@ -14,7 +14,7 @@
         <h1><%= group.name %></h1>
         <p class="tile-sub">
           <%= group.members.length %> members:
-          <%= group.members.map(function(m){ return m.display_name }).join(', ') %>
+          <%= group.members.map(function(m){ return m.display_name }).join(', ')%>
         </p>
       </div>
     <% } %>
@@ -38,7 +38,7 @@
             <%= new Date(m.created_at + 'Z').toLocaleString() %>
             <% if (m.edited_at && !m.deleted_at) { %><span class="bubble-edited">(edited)</span><% } %>
           </div>
-          <% if (m.sender_id === currentUser.id && !m.deleted_at && chatType === 'dm') { %>
+          <% if (m.sender_id === currentUser.id && !m.deleted_at && chatType ==='dm') { %>
             <div class="bubble-actions">
               <button type="button" class="link-btn edit-msg-btn" data-id="<%= m.id %>" data-body="<%= m.body %>">Edit</button>
               <form action="/messages/<%= chatTargetId %>/<%= m.id %>/delete" method="POST" class="inline-form">
@@ -71,6 +71,7 @@
   </form>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
   const chatType = <%- JSON.stringify(chatType) %>;
   const targetId = <%- JSON.stringify(chatTargetId) %>;
@@ -129,7 +130,55 @@
       }
     } catch (e) { /* ignore transient errors */ }
   }
-  setInterval(poll, 3000);
+
+  // Group chats still use polling. Commit 3 ports them to sockets.
+  if (chatType === 'group') {
+    setInterval(poll, 3000);
+  }
+
+  // Real-time DM delivery over Socket.IO.
+  if (chatType === 'dm' && typeof io === 'function') {
+    const socket = io();
+
+    socket.on('dm:new', (m) => {
+      const inThisChat =
+        (m.sender_id === myId && m.recipient_id === targetId) ||
+        (m.sender_id === targetId && m.recipient_id === myId);
+      if (!inThisChat) return;
+      if (list.querySelector(`.message[data-id="${m.id}"]`)) return;
+
+      const wasAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
+      list.appendChild(renderMessage(m));
+      if (wasAtBottom) list.scrollTop = list.scrollHeight;
+    });
+
+    socket.on('dm:edited', ({ id, body }) => {
+      const el = list.querySelector(`.message[data-id="${id}"] .bubble-text`);
+      if (el) {
+        el.textContent = body;
+        const time = el.parentElement.querySelector('.bubble-time');
+        if (time && !time.querySelector('.bubble-edited')) {
+          const span = document.createElement('span');
+          span.className = 'bubble-edited';
+          span.textContent = '(edited)';
+          time.appendChild(span);
+        }
+      }
+    });
+
+    socket.on('dm:deleted', ({ id }) => {
+      const bubble = list.querySelector(`.message[data-id="${id}"] .bubble`);
+      if (!bubble) return;
+      bubble.querySelectorAll('.bubble-text, .bubble-image').forEach((n) => n.remove());
+      bubble.querySelectorAll('.bubble-actions').forEach((n) => n.remove());
+      if (!bubble.querySelector('.bubble-deleted')) {
+        const del = document.createElement('div');
+        del.className = 'bubble-text bubble-deleted';
+        del.textContent = 'Message deleted';
+        bubble.insertBefore(del, bubble.firstChild);
+      }
+    });
+  }
 
   // Inline message editing (DM chats only, since edit routes are DM-only for now)
   if (chatType === 'dm') {

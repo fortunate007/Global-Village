@@ -58,9 +58,27 @@ router.post(
     const other = db.prepare('SELECT id FROM users WHERE id = ?').get(otherId);
     if (!other) return res.redirect('/users');
 
-    db.prepare(
-      `INSERT INTO messages (sender_id, recipient_id, body, image_url) VALUES (?, ?, ?, ?)`
-    ).run(req.user.id, otherId, body, imageUrl);
+    const result = db
+      .prepare(
+        `INSERT INTO messages (sender_id, recipient_id, body, image_url) VALUES (?, ?, ?, ?)`
+      )
+      .run(req.user.id, otherId, body, imageUrl);
+
+    // Push the new message over each user's private socket room so open chat
+    // views update instantly instead of waiting for the next poll tick.
+    const saved = db
+      .prepare(
+        `SELECT m.*, u.display_name AS sender_name, u.avatar_url AS sender_avatar
+         FROM messages m JOIN users u ON u.id = m.sender_id
+         WHERE m.id = ?`
+      )
+      .get(result.lastInsertRowid);
+
+    const io = req.app.get('io');
+    if (io && saved) {
+      io.to(`user:${otherId}`).emit('dm:new', saved);
+      io.to(`user:${req.user.id}`).emit('dm:new', saved);
+    }
 
     res.redirect(`/messages/${otherId}`);
   }
@@ -90,6 +108,13 @@ router.post('/messages/:userId/:messageId/edit', ensureAuthenticated, (req, res)
     body,
     messageId
   );
+
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${otherId}`).emit('dm:edited', { id: messageId, body });
+    io.to(`user:${req.user.id}`).emit('dm:edited', { id: messageId, body });
+  }
+
   res.redirect(`/messages/${otherId}`);
 });
 
@@ -106,10 +131,18 @@ router.post('/messages/:userId/:messageId/delete', ensureAuthenticated, (req, re
   db.prepare(
     `UPDATE messages SET body = '', image_url = NULL, deleted_at = CURRENT_TIMESTAMP WHERE id = ?`
   ).run(messageId);
+
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${otherId}`).emit('dm:deleted', { id: messageId });
+    io.to(`user:${req.user.id}`).emit('dm:deleted', { id: messageId });
+  }
+
   res.redirect(`/messages/${otherId}`);
 });
 
-// Polling endpoint: fetch messages newer than a given id (used by frontend JS)
+// Fallback polling endpoint. Kept so older cached clients don't break; the
+// chat view now uses sockets for DMs. Groups still poll until commit 3.
 router.get('/api/messages/:userId/since/:lastId', ensureAuthenticated, (req, res) => {
   const otherId = Number(req.params.userId);
   const lastId = Number(req.params.lastId) || 0;
