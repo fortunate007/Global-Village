@@ -1,9 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const session = require('express-session');
 const passport = require('passport');
 const flash = require('connect-flash');
+const http = require('http');
+const { createSessionMiddleware } = require('./config/session');
+const { createSocketServer } = require('./realtime');
 
 const db = require('./db');
 const configurePassport = require('./config/passport');
@@ -20,25 +22,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Tests use the in-memory session store (no native module, no file on disk).
-// Everywhere else, sessions persist to SQLite so logins survive a restart.
-const isTest = process.env.NODE_ENV === 'test';
-const sessionStore = isTest
-  ? undefined
-  : new (require('connect-sqlite3')(session))({
-      db: 'sessions.db',
-      dir: path.join(__dirname, '..', 'data'),
-    });
-
-app.use(
-  session({
-    store: sessionStore,
-    secret: process.env.SESSION_SECRET || 'global-village-dev-secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  })
-);
+const sessionMiddleware = createSessionMiddleware();
+app.use(sessionMiddleware);
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -81,10 +66,14 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something went wrong.');
 });
 
+const server = http.createServer(app);
+const io = createSocketServer(server, sessionMiddleware);
+app.set('io', io);
+
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Global Village running at http://localhost:${PORT}`);
+  server.listen(PORT, () => {
+    console.log(`Global Village running at http://localhost:`);
   });
 }
 
