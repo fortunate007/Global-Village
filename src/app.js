@@ -73,7 +73,7 @@ app.set('io', io);
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
   server.listen(PORT, () => {
-    console.log(`Global Village running at http://localhost:`);
+    console.log(`Global Village running at http://localhost:${PORT}`);
   });
 }
 
