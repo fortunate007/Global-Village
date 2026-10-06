@@ -5,3 +5,6 @@ src/public/uploads/avatars/*
 !src/public/uploads/avatars/.gitkeep
 src/public/uploads/chat/*
 !src/public/uploads/chat/.gitkeep
+
+# git bundles
+*.bundle
