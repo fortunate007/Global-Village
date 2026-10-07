@@ -77,4 +77,6 @@ if (require.main === module) {
   });
 }
 app.use('/posts', require('./routes/posts'));
+app.locals.linkify = require('./lib/linkify').linkify;
+app.use('/tags', require('./routes/tags'));
 module.exports = app;
