@@ -76,5 +76,5 @@ if (require.main === module) {
     console.log(`Global Village running at http://localhost:${PORT}`);
   });
 }
-
+app.use('/posts', require('./routes/posts'));
 module.exports = app;
