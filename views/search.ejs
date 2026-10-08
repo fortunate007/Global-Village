@@ -1,0 +1,54 @@
+<%- include('partials/header') %>
+<main>
+  <h2>Search</h2>
+  <form method="GET" action="/search">
+    <input type="search" name="q" value="<%= q %>" placeholder='Search posts, people, #tags. Use "quotes" for exact phrases' maxlength="100" autofocus>
+    <input type="hidden" name="type" value="<%= type %>">
+    <button>Search</button>
+  </form>
+
+  <nav>
+    <% ['all', 'posts', 'people', 'tags'].forEach(t => { %>
+      <a href="/search?q=<%= encodeURIComponent(q) %>&type=<%= t %>"><%= t === type ? '[' + t + ']' : t %></a>
+    <% }) %>
+  </nav>
+
+  <% if (q && !posts.length && !people.length && !tags.length) { %>
+    <p>No results for "<%= q %>".</p>
+  <% } %>
+
+  <% if (people.length) { %>
+    <h3>People</h3>
+    <ul>
+      <% people.forEach(u => { %>
+        <li>
+          <img src="<%= u.avatar_url %>" alt="" width="32" height="32">
+          <a href="<%= profilePath %><%= u.username %>"><%= u.display_name %> (@<%= u.username %>)</a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+
+  <% if (tags.length) { %>
+    <h3>Hashtags</h3>
+    <ul>
+      <% tags.forEach(t => { %>
+        <li><a href="/tags/<%= encodeURIComponent(t.tag) %>">#<%= t.tag %></a> · <%= t.count %> posts</li>
+      <% }) %>
+    </ul>
+  <% } %>
+
+  <% if (posts.length) { %>
+    <h3>Posts</h3>
+    <% posts.forEach(p => { %><%- include('partials/post-card', { p }) %><% }) %>
+    <% if (type === 'posts') { %>
+      <p>
+        <% if (page > 1) { %><a href="/search?q=<%= encodeURIComponent(q) %>&type=posts&page=<%= page - 1 %>">Previous</a><% } %>
+        <% if (hasMore) { %><a href="/search?q=<%= encodeURIComponent(q) %>&type=posts&page=<%= page + 1 %>">Next</a><% } %>
+      </p>
+    <% } else if (hasMore) { %>
+      <p><a href="/search?q=<%= encodeURIComponent(q) %>&type=posts">See more posts</a></p>
+    <% } %>
+  <% } %>
+</main>
+<%- include('partials/footer') %>

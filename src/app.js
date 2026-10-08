@@ -52,6 +52,7 @@ app.use('/', require('./routes/groups'));
 app.use('/posts', require('./routes/posts'));
 app.use('/', require('./routes/bookmarks'));
 app.use('/', require('./routes/entities'));
+app.use('/', require('./routes/search'));
 
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Not Found' });
