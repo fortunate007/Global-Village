@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+<main>
+  <p><a href="/posts">← All posts</a></p>
+
+  <% ancestors.forEach(a => { %>
+    <%- include('../partials/post-card', { p: a }) %><hr>
+  <% }) %>
+
+  <%- include('../partials/post-card', { p: post }) %>
+
+  <% if (currentUser) { %>
+    <form method="POST" action="/posts/<%= post.id %>/repost" style="display:inline"><button>Repost / undo</button></form>
+    <% if (currentUser.id === post.author_id) { %>
+      <form method="POST" action="/posts/<%= post.id %>/delete" style="display:inline"><button>Delete</button></form>
+    <% } %>
+
+    <form method="POST" action="/posts/<%= post.id %>/reply">
+      <textarea name="body" maxlength="<%= maxLength %>" required placeholder="Reply"></textarea>
+      <button>Reply</button>
+    </form>
+    <form method="POST" action="/posts/<%= post.id %>/quote">
+      <textarea name="body" maxlength="<%= maxLength %>" required placeholder="Add a comment and quote"></textarea>
+      <button>Quote</button>
+    </form>
+  <% } %>
+
+  <h3>Replies</h3>
+  <% if (!replies.length) { %><p>No replies yet.</p><% } %>
+  <% replies.forEach(r => { %><%- include('../partials/post-card', { p: r }) %><% }) %>
+</main>
+<%- include('../partials/footer') %>

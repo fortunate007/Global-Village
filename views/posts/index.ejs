@@ -1,0 +1,24 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Posts</h2>
+
+  <% if (currentUser) { %>
+    <form method="POST" action="/posts">
+      <textarea name="body" maxlength="<%= maxLength %>" required placeholder="What's happening?"></textarea>
+      <button>Post</button>
+    </form>
+  <% } else { %>
+    <p><a href="/login">Log in</a> to post.</p>
+  <% } %>
+
+  <% if (!feed.length) { %><p>No posts yet.</p><% } %>
+  <% feed.forEach(row => { %>
+    <% if (row.original) { %>
+      <small>↻ @<%= row.username %> reposted</small>
+      <%- include('../partials/post-card', { p: row.original }) %>
+    <% } else { %>
+      <%- include('../partials/post-card', { p: row }) %>
+    <% } %>
+  <% }) %>
+</main>
+<%- include('../partials/footer') %>

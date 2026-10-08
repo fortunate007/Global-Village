@@ -1,0 +1,17 @@
+<article class="post">
+  <img src="<%= p.avatar_url %>" alt="" width="40" height="40">
+  <strong><%= p.display_name %></strong>
+  <small>@<%= p.username %> · <%= new Date(p.created_at + 'Z').toLocaleString() %></small>
+  <% if (p.body) { %><p><%= p.body %></p><% } %>
+  <% if (p.quoted) { %>
+    <blockquote>
+      <strong><%= p.quoted.display_name %></strong> <small>@<%= p.quoted.username %></small>
+      <p><%= p.quoted.body %></p>
+      <a href="/posts/<%= p.quoted.id %>">View post</a>
+    </blockquote>
+  <% } %>
+  <small>
+    <a href="/posts/<%= p.id %>">Thread</a> ·
+    <%= p.reply_count %> replies · <%= p.repost_count %> reposts · <%= p.quote_count %> quotes
+  </small>
+</article>

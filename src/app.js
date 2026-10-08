@@ -48,6 +48,7 @@ app.use('/', require('./routes/users'));
 app.use('/', require('./routes/friends'));
 app.use('/', require('./routes/messages'));
 app.use('/', require('./routes/groups'));
+app.use('/posts', require('./routes/posts'));
 
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Not Found' });
@@ -76,7 +77,4 @@ if (require.main === module) {
     console.log(`Global Village running at http://localhost:${PORT}`);
   });
 }
-app.use('/posts', require('./routes/posts'));
-app.locals.linkify = require('./lib/linkify').linkify;
-app.use('/tags', require('./routes/tags'));
 module.exports = app;

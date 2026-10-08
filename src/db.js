@@ -90,4 +90,6 @@ function ensureColumn(table, column, definition) {
 ensureColumn('messages', 'edited_at', 'DATETIME');
 ensureColumn('messages', 'deleted_at', 'DATETIME');
 
+require('./schema/posts')(db);
+
 module.exports = db;
