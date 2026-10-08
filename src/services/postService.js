@@ -1,4 +1,5 @@
 const db = require('../db');
+const entities = require('./entityService');
 
 const MAX_LENGTH = 280;
 
@@ -18,6 +19,12 @@ const POST_SQL = `
 const insert = db.prepare(
   'INSERT INTO posts (author_id, body, parent_id, repost_of_id, quote_of_id) VALUES (?, ?, ?, ?, ?)'
 );
+
+const createWithEntities = db.transaction((authorId, body, parentId, quoteOfId) => {
+  const id = Number(insert.run(authorId, body, parentId, null, quoteOfId).lastInsertRowid);
+  entities.sync(id, body);
+  return id;
+});
 
 function clean(body) {
   const text = (body || '').trim();
@@ -44,18 +51,19 @@ function hydrate(row) {
 
 exports.PostError = PostError;
 exports.MAX_LENGTH = MAX_LENGTH;
+exports.POST_SQL = POST_SQL;
+exports.hydrate = hydrate;
 
-exports.createPost = (authorId, body) =>
-  Number(insert.run(authorId, clean(body), null, null, null).lastInsertRowid);
+exports.createPost = (authorId, body) => createWithEntities(authorId, clean(body), null, null);
 
 exports.reply = (authorId, parentId, body) => {
   requirePost(parentId);
-  return Number(insert.run(authorId, clean(body), parentId, null, null).lastInsertRowid);
+  return createWithEntities(authorId, clean(body), parentId, null);
 };
 
 exports.quote = (authorId, quotedId, body) => {
   requirePost(quotedId);
-  return Number(insert.run(authorId, clean(body), null, null, quotedId).lastInsertRowid);
+  return createWithEntities(authorId, clean(body), null, quotedId);
 };
 
 // Reposts always point at the original post. Returns { reposted: true|false }
@@ -110,6 +118,3 @@ exports.getThread = (id) => {
 
   return { post, ancestors, replies };
 };
-
-exports.POST_SQL = POST_SQL;
-exports.hydrate = hydrate;

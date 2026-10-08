@@ -1,0 +1,8 @@
+<%- include('../partials/header') %>
+<main>
+  <p><a href="/tags">← Trending</a></p>
+  <h2>#<%= tag %></h2>
+  <% if (!items.length) { %><p>No posts with this tag yet.</p><% } %>
+  <% items.forEach(p => { %><%- include('../partials/post-card', { p }) %><% }) %>
+</main>
+<%- include('../partials/footer') %>

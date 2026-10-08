@@ -1,0 +1,11 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Trending this week</h2>
+  <% if (!tags.length) { %><p>No hashtags yet. Start one with #something.</p><% } %>
+  <ol>
+    <% tags.forEach(t => { %>
+      <li><a href="/tags/<%= encodeURIComponent(t.tag) %>">#<%= t.tag %></a> · <%= t.count %> posts</li>
+    <% }) %>
+  </ol>
+</main>
+<%- include('../partials/footer') %>

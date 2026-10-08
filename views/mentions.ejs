@@ -1,0 +1,7 @@
+<%- include('partials/header') %>
+<main>
+  <h2>Mentions</h2>
+  <% if (!items.length) { %><p>Nobody has mentioned you yet.</p><% } %>
+  <% items.forEach(p => { %><%- include('partials/post-card', { p }) %><% }) %>
+</main>
+<%- include('partials/footer') %>

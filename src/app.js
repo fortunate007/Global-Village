@@ -16,6 +16,7 @@ configurePassport(passport);
 const app = express();
 
 app.set('view engine', 'ejs');
+app.locals.linkify = require('./utils/linkify').linkify;
 app.set('views', path.join(__dirname, '..', 'views'));
 
 app.use(express.urlencoded({ extended: true }));
@@ -50,6 +51,7 @@ app.use('/', require('./routes/messages'));
 app.use('/', require('./routes/groups'));
 app.use('/posts', require('./routes/posts'));
 app.use('/', require('./routes/bookmarks'));
+app.use('/', require('./routes/entities'));
 
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Not Found' });

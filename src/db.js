@@ -92,5 +92,6 @@ ensureColumn('messages', 'deleted_at', 'DATETIME');
 
 require('./schema/posts')(db);
 require('./schema/engagement')(db);
+require('./schema/entities')(db);
 
 module.exports = db;
