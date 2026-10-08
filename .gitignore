@@ -9,4 +9,3 @@ src/public/uploads/chat/*
 # git bundles
 *.bundle
 
-/src/generated/prisma
