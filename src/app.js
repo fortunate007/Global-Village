@@ -43,6 +43,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => { res.locals.unreadNotifications = req.user ? require('./services/notificationService').unreadCount(req.user.id) : 0; next(); });
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/profile'));
 app.use('/', require('./routes/users'));
@@ -53,6 +54,7 @@ app.use('/posts', require('./routes/posts'));
 app.use('/', require('./routes/bookmarks'));
 app.use('/', require('./routes/entities'));
 app.use('/', require('./routes/search'));
+app.use('/', require('./routes/notifications'));
 
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Not Found' });

@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+<main>
+  <h2>Notifications</h2>
+  <% if (!items.length) { %><p>Nothing yet. Likes, replies, quotes, reposts and mentions will show up here.</p><% } %>
+  <ul>
+    <% items.forEach(n => { %>
+      <li style="<%= n.read_at ? '' : 'font-weight:bold' %>">
+        <img src="<%= n.avatar_url %>" alt="" width="32" height="32">
+        <a href="/posts/<%= n.post_id %>"><%= n.display_name %> (@<%= n.username %>) <%= verbs[n.type] %></a>
+        <small><%= new Date(n.created_at + 'Z').toLocaleString() %></small>
+        <% if (n.body) { %><blockquote><%= n.body.length > 100 ? n.body.slice(0, 100) + '…' : n.body %></blockquote><% } %>
+      </li>
+    <% }) %>
+  </ul>
+</main>
+<%- include('partials/footer') %>
