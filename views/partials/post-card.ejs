@@ -1,3 +1,5 @@
+<% const liked = locals.likedIds && locals.likedIds.has(p.id); %>
+<% const bookmarked = locals.bookmarkedIds && locals.bookmarkedIds.has(p.id); %>
 <article class="post">
   <img src="<%= p.avatar_url %>" alt="" width="40" height="40">
   <strong><%= p.display_name %></strong>
@@ -14,4 +16,14 @@
     <a href="/posts/<%= p.id %>">Thread</a> ·
     <%= p.reply_count %> replies · <%= p.repost_count %> reposts · <%= p.quote_count %> quotes
   </small>
+  <% if (currentUser) { %>
+    <form method="POST" action="/posts/<%= p.id %>/like" style="display:inline">
+      <button><%= liked ? 'Unlike' : 'Like' %> (<%= p.like_count %>)</button>
+    </form>
+    <form method="POST" action="/posts/<%= p.id %>/bookmark" style="display:inline">
+      <button><%= bookmarked ? 'Remove bookmark' : 'Bookmark' %></button>
+    </form>
+  <% } else { %>
+    <small><%= p.like_count %> likes</small>
+  <% } %>
 </article>

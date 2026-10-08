@@ -49,6 +49,7 @@ app.use('/', require('./routes/friends'));
 app.use('/', require('./routes/messages'));
 app.use('/', require('./routes/groups'));
 app.use('/posts', require('./routes/posts'));
+app.use('/', require('./routes/bookmarks'));
 
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Not Found' });

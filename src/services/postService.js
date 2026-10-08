@@ -10,7 +10,8 @@ const POST_SQL = `
          u.username, u.display_name, u.avatar_url,
          (SELECT COUNT(*) FROM posts x WHERE x.parent_id = p.id) AS reply_count,
          (SELECT COUNT(*) FROM posts x WHERE x.repost_of_id = p.id) AS repost_count,
-         (SELECT COUNT(*) FROM posts x WHERE x.quote_of_id = p.id) AS quote_count
+         (SELECT COUNT(*) FROM posts x WHERE x.quote_of_id = p.id) AS quote_count,
+         (SELECT COUNT(*) FROM likes x WHERE x.post_id = p.id) AS like_count
   FROM posts p
   JOIN users u ON u.id = p.author_id`;
 
@@ -109,3 +110,6 @@ exports.getThread = (id) => {
 
   return { post, ancestors, replies };
 };
+
+exports.POST_SQL = POST_SQL;
+exports.hydrate = hydrate;
