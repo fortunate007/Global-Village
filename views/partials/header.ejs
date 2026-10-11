@@ -21,6 +21,9 @@
     </a>
     <% if (currentUser) { %>
       <nav class="topnav">
+        <% if (currentUser && currentUser.is_admin) { %>
+  <a href="/admin/users">Admin</a>
+<% } %>
         <a href="/users">People</a>
         <a href="/friends">Friends<% if (pendingRequests > 0) { %> <span class="badge"><%= pendingRequests %></span><% } %></a>
         <a href="/groups/new">New Group</a>
