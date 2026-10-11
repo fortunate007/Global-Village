@@ -8,6 +8,12 @@
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
 </head>
 <body>
+  <a href="/account/delete">Delete my account</a>
+  <a href="/account/export">Download my data</a>
+  <a href="/account/security">Password and devices</a>
+  <% if (emailPending) { %>
+  <p class="notice">Please confirm your email address. <a href="/account/verify-email">Resend the link or fix a typo</a>.</p>
+<% } %>
   <header class="topbar">
     <a class="brand" href="/">
       <span class="brand-mark">GV</span>
