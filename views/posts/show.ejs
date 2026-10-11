@@ -7,6 +7,10 @@
   <% }) %>
 
   <%- include('../partials/post-card', { p: post }) %>
+  <% if (currentUser && currentUser.is_admin) { %>
+  <a href="/admin/users">Admin</a>
+<% } %>
+
 
   <% if (currentUser) { %>
     <form method="POST" action="/posts/<%= post.id %>/repost" style="display:inline"><button>Repost / undo</button></form>
