@@ -179,7 +179,15 @@ router.get('/api/groups/:id/since/:lastId', ensureAuthenticated, (req, res) => {
 const leaveGroup = db.transaction((groupId, userId) => {
   db.prepare('DELETE FROM group_members WHERE group_id = ? AND user_id = ?').run(groupId, userId);
   const remaining = db.prepare('SELECT COUNT(*) AS n FROM group_members WHERE group_id = ?').get(groupId).n;
-  if (remaining === 0) db.prepare('DELETE FROM groups WHERE id = ?').run(groupId);
+  if (remaining === 0) {
+    const images = db
+      .prepare('SELECT image_url FROM messages WHERE group_id = ? AND image_url IS NOT NULL')
+      .all(groupId)
+      .map((r) => r.image_url);
+    db.prepare('DELETE FROM groups WHERE id = ?').run(groupId);
+    return images;
+  }
+  return [];
 });
 
 router.post('/groups/:id/leave', ensureAuthenticated, (req, res) => {
@@ -188,7 +196,8 @@ router.post('/groups/:id/leave', ensureAuthenticated, (req, res) => {
     req.flash('error', 'Group not found.');
     return res.redirect('/users');
   }
-  leaveGroup(groupId, req.user.id);
+  // If this emptied the group, its pictures are removed from disk as well
+  leaveGroup(groupId, req.user.id).forEach((url) => removeChatImage(url));
   req.flash('success', 'You left the group.');
   res.redirect('/users');
 });

@@ -5,6 +5,7 @@ const { ensureAuthenticated } = require('../middleware/auth');
 const { avatarUpload } = require('../config/upload');
 const { isValidDisplayName, withinLength } = require('../utils/validators');
 const safety = require('../services/safetyService');
+const { removeAvatar } = require('../utils/avatarFiles');
 
 const router = express.Router();
 
@@ -47,6 +48,9 @@ router.post('/profile', ensureAuthenticated, avatarUpload.single('avatar'), (req
     avatarUrl,
     req.user.id
   );
+
+  // The previous picture is no longer used, so its file is removed
+  if (req.file && req.user.avatar_url !== avatarUrl) removeAvatar(req.user.avatar_url);
 
   req.flash('success', 'Profile updated!');
   res.redirect('/profile');
