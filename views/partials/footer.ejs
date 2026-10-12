@@ -2,5 +2,9 @@
   <footer class="sitefooter">
     <p><%= appName %> &mdash; built by Newton Miriti</p>
   </footer>
+<% if (currentUser) { %>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/notifications.js"></script>
+<% } %>
 </body>
 </html>

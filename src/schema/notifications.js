@@ -1,17 +1,44 @@
+const tableSql = (name) => `
+  CREATE TABLE ${name} (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    actor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL CHECK (type IN
+      ('mention', 'reply', 'quote', 'like', 'repost', 'friend_request', 'friend_accept')),
+    post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    read_at DATETIME,
+    CHECK (user_id != actor_id),
+    CHECK ((type IN ('friend_request', 'friend_accept')) = (post_id IS NULL))
+  )`;
+
+const TRIGGERS = [
+  'notif_like_ai', 'notif_like_ad', 'notif_reply_ai', 'notif_quote_ai', 'notif_repost_ai',
+  'notif_repost_ad', 'notif_mention_ai', 'notif_friend_request_ai', 'notif_friend_request_ad',
+];
+
 module.exports = function applyNotificationsSchema(db) {
+  // Upgrade tables created before friend notifications existed (SQLite cannot alter a CHECK).
+  // Triggers are dropped first because ALTER TABLE ... RENAME re-validates them.
+  const existing = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'notifications'").get();
+  if (existing && !existing.sql.includes('friend_request')) {
+    TRIGGERS.forEach((t) => db.exec(`DROP TRIGGER IF EXISTS ${t}`));
+    db.transaction(() => {
+      db.exec(tableSql('notifications_new'));
+      db.exec(`INSERT INTO notifications_new (id, user_id, actor_id, type, post_id, created_at, read_at)
+               SELECT id, user_id, actor_id, type, post_id, created_at, read_at FROM notifications`);
+      db.exec('DROP TABLE notifications');
+      db.exec('ALTER TABLE notifications_new RENAME TO notifications');
+    })();
+  }
+
+  if (!existing) db.exec(tableSql('notifications'));
+
   db.exec(`
-    CREATE TABLE IF NOT EXISTS notifications (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      actor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      type TEXT NOT NULL CHECK (type IN ('mention', 'reply', 'quote', 'like', 'repost')),
-      post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      read_at DATETIME,
-      CHECK (user_id != actor_id)
-    );
     CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_unique
-      ON notifications(user_id, actor_id, type, post_id);
+      ON notifications(user_id, actor_id, type, post_id) WHERE post_id IS NOT NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_unique_friend
+      ON notifications(user_id, actor_id, type) WHERE post_id IS NULL;
     CREATE INDEX IF NOT EXISTS idx_notifications_user
       ON notifications(user_id, read_at, created_at);
 
@@ -63,6 +90,26 @@ module.exports = function applyNotificationsSchema(db) {
           SELECT 1 FROM notifications n
           WHERE n.user_id = new.user_id AND n.post_id = new.post_id AND n.type IN ('reply', 'quote')
         );
+    END;
+
+    -- Friend requests: notify the recipient
+    CREATE TRIGGER IF NOT EXISTS notif_friend_request_ai AFTER INSERT ON friend_requests BEGIN
+      INSERT OR IGNORE INTO notifications (user_id, actor_id, type)
+      VALUES (new.recipient_id, new.sender_id, 'friend_request');
+    END;
+
+    -- Request removed: the recipient's request notification goes away, and if the two
+    -- are now friends (the request was accepted) the original sender is told.
+    -- The EXISTS checks on users keep this safe when a user account is being deleted.
+    CREATE TRIGGER IF NOT EXISTS notif_friend_request_ad AFTER DELETE ON friend_requests BEGIN
+      DELETE FROM notifications
+      WHERE type = 'friend_request' AND user_id = old.recipient_id AND actor_id = old.sender_id;
+
+      INSERT OR IGNORE INTO notifications (user_id, actor_id, type)
+      SELECT old.sender_id, old.recipient_id, 'friend_accept'
+      WHERE EXISTS (SELECT 1 FROM users WHERE id = old.sender_id)
+        AND EXISTS (SELECT 1 FROM users WHERE id = old.recipient_id)
+        AND EXISTS (SELECT 1 FROM friends f WHERE f.user_id = old.sender_id AND f.friend_id = old.recipient_id);
     END;
   `);
 };

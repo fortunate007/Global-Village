@@ -9,7 +9,7 @@ router.get('/notifications', ensureAuth, (req, res) => {
   const items = notifications.list(req.user.id);
   notifications.markAllRead(req.user.id);
   res.locals.unreadNotifications = 0;
-  res.render('notifications', { title: 'Notifications', items, verbs: notifications.VERBS });
+  res.render('notifications', { title: 'Notifications', items });
 });
 
 module.exports = router;
