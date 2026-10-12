@@ -10,6 +10,13 @@ const VERBS = {
   friend_accept: 'accepted your friend request',
 };
 
+// Notifications from people you blocked or muted (or who blocked you) are never shown, counted or pushed
+const VISIBLE = `n.actor_id NOT IN (
+  SELECT blocked_id FROM blocks WHERE blocker_id = n.user_id
+  UNION SELECT blocker_id FROM blocks WHERE blocked_id = n.user_id
+  UNION SELECT muted_id FROM mutes WHERE muter_id = n.user_id
+)`;
+
 const SELECT = `
   SELECT n.id, n.user_id, n.type, n.post_id, n.created_at, n.read_at,
          u.username, u.display_name, u.avatar_url, p.body
@@ -28,16 +35,18 @@ exports.VERBS = VERBS;
 
 exports.list = (userId, limit = 50) =>
   db
-    .prepare(`${SELECT} WHERE n.user_id = ? ORDER BY n.created_at DESC, n.id DESC LIMIT ?`)
+    .prepare(`${SELECT} WHERE n.user_id = ? AND ${VISIBLE} ORDER BY n.created_at DESC, n.id DESC LIMIT ?`)
     .all(userId, limit)
     .map(present);
 
 // Every user's notifications newer than the given id (used by the live relay)
 exports.listAfter = (id) =>
-  db.prepare(`${SELECT} WHERE n.id > ? ORDER BY n.id ASC`).all(id).map(present);
+  db.prepare(`${SELECT} WHERE n.id > ? AND ${VISIBLE} ORDER BY n.id ASC`).all(id).map(present);
 
 exports.unreadCount = (userId) =>
-  db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE user_id = ? AND read_at IS NULL').get(userId).n;
+  db
+    .prepare(`SELECT COUNT(*) AS count FROM notifications n WHERE n.user_id = ? AND n.read_at IS NULL AND ${VISIBLE}`)
+    .get(userId).count;
 
 exports.markAllRead = (userId) =>
   db
