@@ -138,9 +138,19 @@
     } catch (e) { /* ignore transient errors */ }
   }
 
-  // Group chats still use polling. Commit 3 ports them to sockets.
+  // Group chats: live delivery over Socket.IO, plus a slow poll as a safety net
   if (chatType === 'group') {
-    setInterval(poll, 3000);
+    if (typeof io === 'function') {
+      const groupSocket = io();
+      groupSocket.on('group:new', (m) => {
+        if (m.group_id !== targetId) return;
+        if (list.querySelector(`.message[data-id="${m.id}"]`)) return;
+        const wasAtBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
+        list.appendChild(renderMessage(m));
+        if (wasAtBottom) list.scrollTop = list.scrollHeight;
+      });
+    }
+    setInterval(poll, 30000);
   }
 
   // Real-time DM delivery over Socket.IO.

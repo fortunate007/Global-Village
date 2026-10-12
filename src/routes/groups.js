@@ -5,6 +5,7 @@ const { ensureAuthenticated } = require('../middleware/auth');
 const { chatImageUpload } = require('../config/upload');
 const { withinLength } = require('../utils/validators');
 const safety = require('../services/safetyService');
+const { broadcastGroupMessage } = require('../services/groupRealtime');
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_GROUP_MEMBERS = 50;
@@ -144,9 +145,12 @@ router.post('/groups/:id', ensureAuthenticated, chatImageUpload.single('image'),
     return res.redirect(`/groups/${groupId}`);
   }
 
-  db.prepare(
-    `INSERT INTO messages (sender_id, group_id, body, image_url) VALUES (?, ?, ?, ?)`
-  ).run(req.user.id, groupId, body, imageUrl);
+  const inserted = db
+    .prepare('INSERT INTO messages (sender_id, group_id, body, image_url) VALUES (?, ?, ?, ?)')
+    .run(req.user.id, groupId, body, imageUrl);
+
+  // Live delivery to every current member who is not blocked either way
+  broadcastGroupMessage(req.app.get('io'), Number(inserted.lastInsertRowid));
 
   res.redirect(`/groups/${groupId}`);
 });
