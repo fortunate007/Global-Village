@@ -1,10 +1,12 @@
 const express = require('express');
 const posts = require('../services/postService');
 const engagement = require('../services/engagementService');
+const safety = require('../services/safetyService');
 
 const router = express.Router();
 
 const ensureAuth = (req, res, next) => (req.isAuthenticated() ? next() : res.redirect('/login'));
+const viewerId = (req) => (req.user ? req.user.id : null);
 
 // Runs a service call; user-facing errors become flash messages, others hit the error handler
 const action = (fn, redirectTo) => (req, res, next) => {
@@ -16,20 +18,24 @@ const action = (fn, redirectTo) => (req, res, next) => {
       req.flash('error', err.message);
       return res.redirect('back');
     }
+    if (safety.isBlockError(err)) {
+      req.flash('error', "You can't interact with that account.");
+      return res.redirect('back');
+    }
     next(err);
   }
 };
 
 const viewerFor = (req, ...lists) =>
-  engagement.viewerState(req.user && req.user.id, engagement.collectIds(...lists));
+  engagement.viewerState(viewerId(req), engagement.collectIds(...lists));
 
 router.get('/', (req, res) => {
-  const feed = posts.feed();
+  const feed = safety.filterPosts(viewerId(req), posts.feed());
   res.render('posts/index', { title: 'Posts', feed, maxLength: posts.MAX_LENGTH, ...viewerFor(req, feed) });
 });
 
 router.get('/:id(\\d+)', (req, res) => {
-  const thread = posts.getThread(Number(req.params.id));
+  const thread = safety.filterThread(viewerId(req), posts.getThread(Number(req.params.id)));
   if (!thread) return res.status(404).render('404', { title: 'Not Found' });
   if (thread.post.repost_of_id) return res.redirect(`/posts/${thread.post.repost_of_id}`);
   res.render('posts/show', {

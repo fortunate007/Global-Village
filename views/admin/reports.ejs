@@ -1,0 +1,27 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Open reports</h2>
+  <% if (!reports.length) { %><p>No open reports.</p><% } %>
+  <% reports.forEach(r => { %>
+    <article class="report">
+      <p>
+        <strong><%= reasons[r.reason] %></strong>
+        · reported by @<%= r.reporter_username %>
+        · post by <%= r.author_username ? '@' + r.author_username : 'a deleted account' %>
+        · <small><%= new Date(r.created_at + 'Z').toLocaleString() %></small>
+      </p>
+      <blockquote><%= r.post_body %></blockquote>
+      <% if (r.details) { %><p>Reporter's note: <%= r.details %></p><% } %>
+      <% if (r.post_id) { %><a href="/posts/<%= r.post_id %>">View post</a><% } else { %><small>Post already deleted</small><% } %>
+      <form method="POST" action="/admin/reports/<%= r.id %>/dismiss" style="display:inline"><button>Dismiss</button></form>
+      <form method="POST" action="/admin/reports/<%= r.id %>/resolve" style="display:inline"><button>Resolve</button></form>
+      <% if (r.post_id) { %>
+        <form method="POST" action="/admin/reports/<%= r.id %>/remove" style="display:inline"
+              onsubmit="return confirm('Delete this post and resolve all reports about it?')">
+          <button>Remove post</button>
+        </form>
+      <% } %>
+    </article>
+  <% }) %>
+</main>
+<%- include('../partials/footer') %>

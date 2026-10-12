@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Report post</h2>
+  <blockquote>
+    <strong>@<%= post.username %></strong>
+    <p><%= post.body %></p>
+  </blockquote>
+
+  <form method="POST" action="/safety/report/<%= reportedId %>">
+    <label>Reason
+      <select name="reason" required>
+        <option value="">Choose a reason</option>
+        <% Object.keys(reasons).forEach(key => { %>
+          <option value="<%= key %>"><%= reasons[key] %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label>Details (optional)
+      <textarea name="details" maxlength="500" placeholder="Anything the moderators should know"></textarea>
+    </label>
+    <button>Send report</button>
+    <a href="/posts">Cancel</a>
+  </form>
+</main>
+<%- include('../partials/footer') %>

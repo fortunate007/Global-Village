@@ -23,6 +23,19 @@
     <form method="POST" action="/posts/<%= p.id %>/bookmark" style="display:inline">
       <button><%= bookmarked ? 'Remove bookmark' : 'Bookmark' %></button>
     </form>
+    <% if (currentUser.id !== p.author_id) { %>
+      <details>
+        <summary>More</summary>
+        <form method="POST" action="/safety/mute/<%= p.author_id %>" style="display:inline">
+          <button>Mute @<%= p.username %></button>
+        </form>
+        <form method="POST" action="/safety/block/<%= p.author_id %>" style="display:inline"
+              onsubmit="return confirm('Block this user? This also removes any friendship.')">
+          <button>Block @<%= p.username %></button>
+        </form>
+        <a href="/safety/report/<%= p.id %>">Report</a>
+      </details>
+    <% } %>
   <% } else { %>
     <small><%= p.like_count %> likes</small>
   <% } %>

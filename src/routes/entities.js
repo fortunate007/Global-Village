@@ -1,6 +1,7 @@
 const express = require('express');
 const discovery = require('../services/discoveryService');
 const engagement = require('../services/engagementService');
+const safety = require('../services/safetyService');
 
 const router = express.Router();
 
@@ -17,12 +18,12 @@ router.get('/tags', (req, res) => {
 router.get('/tags/:tag', (req, res) => {
   const tag = req.params.tag.toLowerCase();
   if (!TAG_RE.test(tag)) return res.status(404).render('404', { title: 'Not Found' });
-  const items = discovery.postsByTag(tag);
+  const items = safety.filterPosts(req.user && req.user.id, discovery.postsByTag(tag));
   res.render('tags/show', { title: `#${tag}`, tag, items, ...viewerFor(req, items) });
 });
 
 router.get('/mentions', ensureAuth, (req, res) => {
-  const items = discovery.postsMentioning(req.user.id);
+  const items = safety.filterPosts(req.user.id, discovery.postsMentioning(req.user.id));
   res.render('mentions', { title: 'Mentions', items, ...viewerFor(req, items) });
 });
 

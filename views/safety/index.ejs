@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Blocked and muted accounts</h2>
+
+  <h3>Blocked</h3>
+  <% if (!blocked.length) { %><p>You haven't blocked anyone.</p><% } %>
+  <ul>
+    <% blocked.forEach(u => { %>
+      <li>
+        <img src="<%= u.avatar_url %>" alt="" width="32" height="32">
+        <%= u.display_name %> (@<%= u.username %>)
+        <form method="POST" action="/safety/unblock/<%= u.id %>" style="display:inline"><button>Unblock</button></form>
+      </li>
+    <% }) %>
+  </ul>
+
+  <h3>Muted</h3>
+  <% if (!muted.length) { %><p>You haven't muted anyone.</p><% } %>
+  <ul>
+    <% muted.forEach(u => { %>
+      <li>
+        <img src="<%= u.avatar_url %>" alt="" width="32" height="32">
+        <%= u.display_name %> (@<%= u.username %>)
+        <form method="POST" action="/safety/unmute/<%= u.id %>" style="display:inline"><button>Unmute</button></form>
+      </li>
+    <% }) %>
+  </ul>
+
+  <p><small>Blocking removes any friendship and stops you both from interacting with each other's posts.
+  Muting hides someone's posts and notifications from you without telling them.</small></p>
+</main>
+<%- include('../partials/footer') %>
