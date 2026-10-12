@@ -14,6 +14,7 @@ const { touchLastSeen } = require('./middleware/auth');
 configurePassport(passport);
 
 const app = express();
+require('./middleware/security').applyEarly(app);
 
 app.set('view engine', 'ejs');
 app.locals.linkify = require('./utils/linkify').linkify;
@@ -45,6 +46,7 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => { res.locals.unreadNotifications = req.user ? require('./services/notificationService').unreadCount(req.user.id) : 0; next(); });
 app.use(require('./realtime/notificationRelay').middleware);
+require('./middleware/security').applyLate(app);
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/profile'));
 app.use('/', require('./routes/users'));
