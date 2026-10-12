@@ -14,7 +14,7 @@ function ensureGuest(req, res, next) {
 // Updates last_seen every request so we can derive "online" status
 function touchLastSeen(req, res, next) {
   if (req.isAuthenticated()) {
-    db.prepare('UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ?').run(req.user.id);
+    db.prepare("UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = ? AND last_seen < datetime('now', '-30 seconds')").run(req.user.id);
   }
   next();
 }

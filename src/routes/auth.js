@@ -48,7 +48,7 @@ router.post('/register', ensureGuest, (req, res) => {
 
   try {
     const existing = db
-      .prepare('SELECT id FROM users WHERE username = ? OR email = ?')
+      .prepare('SELECT id FROM users WHERE username = ? COLLATE NOCASE OR email = ? COLLATE NOCASE')
       .get(username, email);
     if (existing) {
       return res.render('register', {

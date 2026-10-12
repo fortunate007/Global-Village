@@ -2,6 +2,15 @@ const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
 
+// Each allowed extension with the content types a browser may send for it
+const ALLOWED_TYPES = {
+  '.jpg': ['image/jpeg'],
+  '.jpeg': ['image/jpeg'],
+  '.png': ['image/png'],
+  '.gif': ['image/gif'],
+  '.webp': ['image/webp'],
+};
+
 function makeStorage(subdir) {
   return multer.diskStorage({
     destination: path.join(__dirname, '..', '..', 'src', 'public', 'uploads', subdir),
@@ -14,10 +23,9 @@ function makeStorage(subdir) {
 }
 
 const imageFilter = (req, file, cb) => {
-  const allowed = /jpeg|jpg|png|gif|webp/;
-  const extOk = allowed.test(path.extname(file.originalname).toLowerCase());
-  const mimeOk = allowed.test(file.mimetype);
-  if (extOk && mimeOk) return cb(null, true);
+  const ext = path.extname(file.originalname).toLowerCase();
+  const types = Object.prototype.hasOwnProperty.call(ALLOWED_TYPES, ext) ? ALLOWED_TYPES[ext] : null;
+  if (types && types.includes(file.mimetype)) return cb(null, true);
   cb(new Error('Only image files (jpg, png, gif, webp) are allowed.'));
 };
 
@@ -33,4 +41,4 @@ const chatImageUpload = multer({
   fileFilter: imageFilter,
 });
 
-module.exports = { avatarUpload, chatImageUpload };
+module.exports = { avatarUpload, chatImageUpload, imageFilter };
