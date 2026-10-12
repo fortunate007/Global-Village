@@ -2,24 +2,29 @@ const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 const db = require('../db');
 
+const NO_ACCOUNT = 'Incorrect username/email or password.';
+const WRONG_PASSWORD = NO_ACCOUNT;
+
+// Compared against when no account matches, so unknown names take as long as wrong passwords
+const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 10);
+
 module.exports = function configurePassport(passport) {
   passport.use(
     new LocalStrategy(
       { usernameField: 'username', passwordField: 'password' },
       (username, password, done) => {
         try {
-          const user = db
-            .prepare('SELECT * FROM users WHERE username = ? OR email = ?')
-            .get(username, username);
+          const candidates = db
+            .prepare('SELECT * FROM users WHERE username = ? COLLATE NOCASE OR email = ? COLLATE NOCASE')
+            .all(username, username);
 
-          if (!user) {
-            return done(null, false, { message: 'No account with that username/email.' });
+          if (!candidates.length) {
+            bcrypt.compareSync(password, DUMMY_HASH);
+            return done(null, false, { message: NO_ACCOUNT });
           }
 
-          const matches = bcrypt.compareSync(password, user.password_hash);
-          if (!matches) {
-            return done(null, false, { message: 'Incorrect password.' });
-          }
+          const user = candidates.find((u) => bcrypt.compareSync(password, u.password_hash));
+          if (!user) return done(null, false, { message: WRONG_PASSWORD });
 
           return done(null, user);
         } catch (err) {
@@ -34,6 +39,8 @@ module.exports = function configurePassport(passport) {
   passport.deserializeUser((id, done) => {
     try {
       const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+      // The hash is only needed while logging in, never on the request user or in views
+      if (user) delete user.password_hash;
       done(null, user);
     } catch (err) {
       done(err);

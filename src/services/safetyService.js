@@ -181,3 +181,13 @@ exports.removeReportedPost = db.transaction((adminId, reportId) => {
 });
 
 exports.isAdmin = (userId) => !!db.prepare('SELECT 1 FROM users WHERE id = ? AND is_admin = 1').get(userId);
+
+exports.blockedIds = (userId) =>
+  new Set(
+    db
+      .prepare(
+        'SELECT blocked_id AS id FROM blocks WHERE blocker_id = ? UNION SELECT blocker_id FROM blocks WHERE blocked_id = ?'
+      )
+      .all(userId, userId)
+      .map((r) => r.id)
+  );
