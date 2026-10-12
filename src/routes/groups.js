@@ -5,7 +5,8 @@ const { ensureAuthenticated } = require('../middleware/auth');
 const { chatImageUpload } = require('../config/upload');
 const { withinLength } = require('../utils/validators');
 const safety = require('../services/safetyService');
-const { broadcastGroupMessage } = require('../services/groupRealtime');
+const { broadcastGroupMessage, broadcastGroupEdit, broadcastGroupDelete } = require('../services/groupRealtime');
+const { removeChatImage } = require('../utils/chatFiles');
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_GROUP_MEMBERS = 50;
@@ -190,6 +191,69 @@ router.post('/groups/:id/leave', ensureAuthenticated, (req, res) => {
   leaveGroup(groupId, req.user.id);
   req.flash('success', 'You left the group.');
   res.redirect('/users');
+});
+
+// Editing a group message: only the sender, only while still a member, only text messages
+router.post('/groups/:id/messages/:messageId/edit', ensureAuthenticated, (req, res) => {
+  const groupId = Number(req.params.id);
+  const messageId = Number(req.params.messageId);
+  const body = (req.body.body || '').trim();
+
+  if (!isMember(groupId, req.user.id)) return res.redirect('/users');
+  const back = `/groups/${groupId}`;
+
+  if (!body) {
+    req.flash('error', 'Message cannot be empty.');
+    return res.redirect(back);
+  }
+  if (!withinLength(body, MAX_MESSAGE_LENGTH)) {
+    req.flash('error', `Messages must be ${MAX_MESSAGE_LENGTH} characters or fewer.`);
+    return res.redirect(back);
+  }
+
+  // The message must belong to this group, so the URL cannot reach into other conversations
+  const message = db
+    .prepare('SELECT sender_id, body, deleted_at FROM messages WHERE id = ? AND group_id = ?')
+    .get(messageId, groupId);
+  if (!message || message.sender_id !== req.user.id || message.deleted_at) {
+    req.flash('error', 'You can only edit your own messages.');
+    return res.redirect(back);
+  }
+  if (!message.body) {
+    req.flash('error', 'Only text messages can be edited.');
+    return res.redirect(back);
+  }
+
+  if (body !== message.body) {
+    db.prepare('UPDATE messages SET body = ?, edited_at = CURRENT_TIMESTAMP WHERE id = ?').run(body, messageId);
+    broadcastGroupEdit(req.app.get('io'), messageId);
+  }
+  res.redirect(back);
+});
+
+// Deleting your own group message always works, even after you left the group
+router.post('/groups/:id/messages/:messageId/delete', ensureAuthenticated, (req, res) => {
+  const groupId = Number(req.params.id);
+  const messageId = Number(req.params.messageId);
+  const stillMember = isMember(groupId, req.user.id);
+  const back = stillMember ? `/groups/${groupId}` : '/users';
+
+  const message = db
+    .prepare('SELECT sender_id, image_url, deleted_at FROM messages WHERE id = ? AND group_id = ?')
+    .get(messageId, groupId);
+  if (!message || message.sender_id !== req.user.id) {
+    req.flash('error', 'You can only delete your own messages.');
+    return res.redirect(back);
+  }
+
+  if (!message.deleted_at) {
+    db.prepare(
+      "UPDATE messages SET body = '', image_url = NULL, deleted_at = CURRENT_TIMESTAMP WHERE id = ?"
+    ).run(messageId);
+    removeChatImage(message.image_url);
+    broadcastGroupDelete(req.app.get('io'), messageId);
+  }
+  res.redirect(back);
 });
 
 module.exports = router;

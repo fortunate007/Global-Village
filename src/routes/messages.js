@@ -5,6 +5,7 @@ const { ensureAuthenticated } = require('../middleware/auth');
 const { chatImageUpload } = require('../config/upload');
 const { withinLength } = require('../utils/validators');
 const safety = require('../services/safetyService');
+const { removeChatImage } = require('../utils/chatFiles');
 
 const MAX_MESSAGE_LENGTH = 2000;
 
@@ -157,7 +158,7 @@ router.post('/messages/:userId/:messageId/delete', ensureAuthenticated, (req, re
   const messageId = Number(req.params.messageId);
 
   const message = db
-    .prepare('SELECT sender_id, recipient_id, group_id FROM messages WHERE id = ?')
+    .prepare('SELECT sender_id, recipient_id, group_id, image_url FROM messages WHERE id = ?')
     .get(messageId);
   if (!message || message.sender_id !== req.user.id) {
     req.flash('error', 'You can only delete your own messages.');
@@ -167,6 +168,7 @@ router.post('/messages/:userId/:messageId/delete', ensureAuthenticated, (req, re
   db.prepare(
     `UPDATE messages SET body = '', image_url = NULL, deleted_at = CURRENT_TIMESTAMP WHERE id = ?`
   ).run(messageId);
+  removeChatImage(message.image_url);
 
   // Deleting your own message is always allowed, even after a block. Live updates go only
   // to the people actually in that conversation, never to whoever the URL names.

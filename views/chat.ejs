@@ -41,10 +41,10 @@
             <%= new Date(m.created_at + 'Z').toLocaleString() %>
             <% if (m.edited_at && !m.deleted_at) { %><span class="bubble-edited">(edited)</span><% } %>
           </div>
-          <% if (m.sender_id === currentUser.id && !m.deleted_at && chatType ==='dm') { %>
+          <% if (m.sender_id === currentUser.id && !m.deleted_at) { %>
             <div class="bubble-actions">
               <button type="button" class="link-btn edit-msg-btn" data-id="<%= m.id %>" data-body="<%= m.body %>">Edit</button>
-              <form action="/messages/<%= chatTargetId %>/<%= m.id %>/delete" method="POST" class="inline-form">
+              <form action="<%= chatType === 'dm' ? '/messages/' + chatTargetId + '/' + m.id + '/delete' : '/groups/' + chatTargetId + '/messages/' + m.id + '/delete' %>" method="POST" class="inline-form">
                 <button type="submit" class="link-btn" onclick="return confirm('Delete this message?')">Delete</button>
               </form>
             </div>
@@ -142,6 +142,33 @@
   if (chatType === 'group') {
     if (typeof io === 'function') {
       const groupSocket = io();
+      groupSocket.on('group:edited', ({ id, group_id, body }) => {
+        if (group_id !== targetId) return;
+        const bubbleText = list.querySelector(`.message[data-id="${id}"] .bubble-text`);
+        if (!bubbleText) return;
+        bubbleText.textContent = body;
+        const editBtn = list.querySelector(`.message[data-id="${id}"] .edit-msg-btn`);
+        if (editBtn) editBtn.dataset.body = body;
+        const time = bubbleText.parentElement.querySelector('.bubble-time');
+        if (time && !time.querySelector('.bubble-edited')) {
+          const span = document.createElement('span');
+          span.className = 'bubble-edited';
+          span.textContent = '(edited)';
+          time.appendChild(span);
+        }
+      });
+      groupSocket.on('group:deleted', ({ id, group_id }) => {
+        if (group_id !== targetId) return;
+        const bubble = list.querySelector(`.message[data-id="${id}"] .bubble`);
+        if (!bubble) return;
+        bubble.querySelectorAll('.bubble-text, .bubble-image, .bubble-actions').forEach((n) => n.remove());
+        if (!bubble.querySelector('.bubble-deleted')) {
+          const del = document.createElement('div');
+          del.className = 'bubble-text bubble-deleted';
+          del.textContent = 'Message deleted';
+          bubble.insertBefore(del, bubble.firstChild);
+        }
+      });
       groupSocket.on('group:new', (m) => {
         if (m.group_id !== targetId) return;
         if (list.querySelector(`.message[data-id="${m.id}"]`)) return;
@@ -197,8 +224,8 @@
     });
   }
 
-  // Inline message editing (DM chats only, since edit routes are DM-only for now)
-  if (chatType === 'dm') {
+  // Inline message editing (direct and group chats)
+  {
     const editForm = document.getElementById('edit-message-form');
     const editInput = document.getElementById('edit-message-input');
     const cancelBtn = document.getElementById('edit-message-cancel');
@@ -208,7 +235,7 @@
       const btn = e.target.closest('.edit-msg-btn');
       if (!btn) return;
       const id = btn.dataset.id;
-      editForm.action = `/messages/${targetId}/${id}/edit`;
+      editForm.action = chatType === 'dm' ? `/messages/${targetId}/${id}/edit` : `/groups/${targetId}/messages/${id}/edit`;
       editInput.value = btn.dataset.body;
       editForm.style.display = 'flex';
       sendForm.style.display = 'none';
