@@ -95,6 +95,7 @@ require('./schema/engagement')(db);
 require('./schema/entities')(db);
 require('./schema/notifications')(db);
 require('./schema/safety')(db);
+require('./schema/edits')(db);
 require('./schema/search')(db);
 
 module.exports = db;

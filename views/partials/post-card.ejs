@@ -1,9 +1,14 @@
 <% const liked = locals.likedIds && locals.likedIds.has(p.id); %>
 <% const bookmarked = locals.bookmarkedIds && locals.bookmarkedIds.has(p.id); %>
+<% const editWindow = locals.editWindowMinutes || 15; %>
+<% const canEdit = currentUser && currentUser.id === p.author_id && p.body && !p.repost_of_id
+     && (Date.now() - new Date(p.created_at + 'Z').getTime()) / 60000 < editWindow; %>
 <article class="post">
   <img src="<%= p.avatar_url %>" alt="" width="40" height="40">
   <strong><%= p.display_name %></strong>
-  <small>@<%= p.username %> · <%= new Date(p.created_at + 'Z').toLocaleString() %></small>
+  <small>@<%= p.username %> · <%= new Date(p.created_at + 'Z').toLocaleString() %>
+    <% if (p.edited_at) { %>· <a href="/posts/<%= p.id %>/history">edited</a><% } %>
+  </small>
   <% if (p.body) { %><p><%- linkify(p.body) %></p><% } %>
   <% if (p.quoted) { %>
     <blockquote>
@@ -23,6 +28,7 @@
     <form method="POST" action="/posts/<%= p.id %>/bookmark" style="display:inline">
       <button><%= bookmarked ? 'Remove bookmark' : 'Bookmark' %></button>
     </form>
+    <% if (canEdit) { %><a href="/posts/<%= p.id %>/edit">Edit</a><% } %>
     <% if (currentUser.id !== p.author_id) { %>
       <details>
         <summary>More</summary>

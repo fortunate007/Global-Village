@@ -2,12 +2,13 @@ const db = require('../db');
 const entities = require('./entityService');
 
 const MAX_LENGTH = 280;
+const EDIT_WINDOW_MINUTES = 15;
 
 // Errors safe to show to the user (anything else goes to the Express error handler)
 class PostError extends Error {}
 
 const POST_SQL = `
-  SELECT p.id, p.author_id, p.body, p.parent_id, p.repost_of_id, p.quote_of_id, p.created_at,
+  SELECT p.id, p.author_id, p.body, p.parent_id, p.repost_of_id, p.quote_of_id, p.created_at, p.edited_at,
          u.username, u.display_name, u.avatar_url,
          (SELECT COUNT(*) FROM posts x WHERE x.parent_id = p.id) AS reply_count,
          (SELECT COUNT(*) FROM posts x WHERE x.repost_of_id = p.id) AS repost_count,
@@ -49,8 +50,12 @@ function hydrate(row) {
   return row;
 }
 
+const minutesSince = (timestamp) =>
+  db.prepare("SELECT (julianday('now') - julianday(?)) * 1440 AS minutes").get(timestamp).minutes;
+
 exports.PostError = PostError;
 exports.MAX_LENGTH = MAX_LENGTH;
+exports.EDIT_WINDOW_MINUTES = EDIT_WINDOW_MINUTES;
 exports.POST_SQL = POST_SQL;
 exports.hydrate = hydrate;
 
@@ -86,6 +91,50 @@ exports.deletePost = (userId, id) => {
   if (row.author_id !== userId) throw new PostError('You can only delete your own posts.');
   db.prepare('DELETE FROM posts WHERE id = ?').run(id);
 };
+
+// ---- Editing ----
+
+function loadEditable(userId, id) {
+  const row = db
+    .prepare('SELECT id, author_id, body, repost_of_id, created_at FROM posts WHERE id = ?')
+    .get(id);
+  if (!row) throw new PostError('Post not found.');
+  if (row.author_id !== userId) throw new PostError('You can only edit your own posts.');
+  if (row.repost_of_id) throw new PostError('Reposts cannot be edited.');
+  if (minutesSince(row.created_at) > EDIT_WINDOW_MINUTES) {
+    throw new PostError(`Posts can only be edited for ${EDIT_WINDOW_MINUTES} minutes after posting.`);
+  }
+  return row;
+}
+
+// For the edit form: the current text and how long the author has left
+exports.getForEdit = (userId, id) => {
+  const row = loadEditable(userId, id);
+  return {
+    id: row.id,
+    body: row.body,
+    minutesLeft: Math.max(1, Math.ceil(EDIT_WINDOW_MINUTES - minutesSince(row.created_at))),
+  };
+};
+
+// Saves the old text to history, updates the post and rebuilds its tags and mentions, atomically.
+// The search index follows automatically through database triggers.
+exports.editPost = db.transaction((userId, id, body) => {
+  const row = loadEditable(userId, id);
+  const text = clean(body);
+  if (text === row.body) return id;
+
+  db.prepare('INSERT INTO post_edits (post_id, body) VALUES (?, ?)').run(id, row.body);
+  db.prepare('UPDATE posts SET body = ?, edited_at = CURRENT_TIMESTAMP WHERE id = ?').run(text, id);
+  entities.resync(id, text);
+  return id;
+});
+
+// Earlier versions of a post, newest first
+exports.getHistory = (id) =>
+  db.prepare('SELECT id, body, edited_at FROM post_edits WHERE post_id = ? ORDER BY id DESC').all(id);
+
+// ---- Reading ----
 
 // Latest top-level posts and reposts (replies live inside threads)
 exports.feed = (limit = 50) =>

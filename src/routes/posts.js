@@ -46,7 +46,31 @@ router.get('/:id(\\d+)', (req, res) => {
   });
 });
 
+router.get('/:id(\\d+)/history', (req, res) => {
+  const id = Number(req.params.id);
+  const thread = safety.filterThread(viewerId(req), posts.getThread(id));
+  if (!thread || thread.post.repost_of_id) return res.status(404).render('404', { title: 'Not Found' });
+  res.render('posts/history', { title: 'Edit history', post: thread.post, edits: posts.getHistory(id) });
+});
+
+router.get('/:id(\\d+)/edit', ensureAuth, (req, res, next) => {
+  const id = Number(req.params.id);
+  try {
+    const post = posts.getForEdit(req.user.id, id);
+    res.render('posts/edit', { title: 'Edit post', post, maxLength: posts.MAX_LENGTH });
+  } catch (err) {
+    if (!(err instanceof posts.PostError)) return next(err);
+    req.flash('error', err.message);
+    res.redirect(`/posts/${id}`);
+  }
+});
+
 router.post('/', ensureAuth, action((req) => posts.createPost(req.user.id, req.body.body), () => '/posts'));
+router.post(
+  '/:id(\\d+)/edit',
+  ensureAuth,
+  action((req) => posts.editPost(req.user.id, Number(req.params.id), req.body.body), (id) => `/posts/${id}`)
+);
 router.post(
   '/:id(\\d+)/reply',
   ensureAuth,

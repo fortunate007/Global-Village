@@ -1,0 +1,11 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Edit post</h2>
+  <p><small>You have about <%= post.minutesLeft %> more minute(s) to edit. The earlier version stays visible in the post's edit history.</small></p>
+  <form method="POST" action="/posts/<%= post.id %>/edit">
+    <textarea name="body" maxlength="<%= maxLength %>" required><%= post.body %></textarea>
+    <button>Save</button>
+    <a href="/posts/<%= post.id %>">Cancel</a>
+  </form>
+</main>
+<%- include('../partials/footer') %>

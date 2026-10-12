@@ -1,0 +1,18 @@
+<%- include('../partials/header') %>
+<main>
+  <p><a href="/posts/<%= post.id %>">← Back to post</a></p>
+  <h2>Edit history</h2>
+
+  <h3>Current version</h3>
+  <blockquote><p><%- linkify(post.body) %></p></blockquote>
+
+  <h3>Earlier versions</h3>
+  <% if (!edits.length) { %><p>This post has not been edited.</p><% } %>
+  <% edits.forEach(e => { %>
+    <blockquote>
+      <p><%= e.body %></p>
+      <small>replaced <%= new Date(e.edited_at + 'Z').toLocaleString() %></small>
+    </blockquote>
+  <% }) %>
+</main>
+<%- include('../partials/footer') %>

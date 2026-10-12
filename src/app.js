@@ -18,6 +18,7 @@ require('./middleware/security').applyEarly(app);
 
 app.set('view engine', 'ejs');
 app.locals.linkify = require('./utils/linkify').linkify;
+app.locals.editWindowMinutes = require('./services/postService').EDIT_WINDOW_MINUTES;
 app.set('views', path.join(__dirname, '..', 'views'));
 
 app.use(express.urlencoded({ extended: true }));

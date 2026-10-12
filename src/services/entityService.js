@@ -28,3 +28,25 @@ exports.sync = (postId, body) => {
       .forEach((u) => linkMention.run(postId, u.id));
   }
 };
+
+// Rebuilds a post's hashtags and mentions after its text changed. People who are still
+// mentioned keep their existing notification (and its read state); removed ones lose it.
+exports.resync = (postId, body) => {
+  const previousTags = db.prepare('SELECT hashtag_id FROM post_hashtags WHERE post_id = ?').all(postId);
+
+  db.prepare('DELETE FROM post_hashtags WHERE post_id = ?').run(postId);
+  db.prepare('DELETE FROM mentions WHERE post_id = ?').run(postId);
+  exports.sync(postId, body);
+
+  db.prepare(
+    `DELETE FROM notifications
+     WHERE type = 'mention' AND post_id = ?
+       AND user_id NOT IN (SELECT user_id FROM mentions WHERE post_id = ?)`
+  ).run(postId, postId);
+
+  // Drop hashtags that no longer have any post
+  const dropOrphan = db.prepare(
+    'DELETE FROM hashtags WHERE id = ? AND NOT EXISTS (SELECT 1 FROM post_hashtags WHERE hashtag_id = ?)'
+  );
+  previousTags.forEach((t) => dropOrphan.run(t.hashtag_id, t.hashtag_id));
+};
