@@ -169,4 +169,23 @@ router.get('/api/groups/:id/since/:lastId', ensureAuthenticated, (req, res) => {
   res.json(messages);
 });
 
+// Leaving removes you from the group but keeps the messages you sent.
+// When the last member leaves, the group and its messages are deleted.
+const leaveGroup = db.transaction((groupId, userId) => {
+  db.prepare('DELETE FROM group_members WHERE group_id = ? AND user_id = ?').run(groupId, userId);
+  const remaining = db.prepare('SELECT COUNT(*) AS n FROM group_members WHERE group_id = ?').get(groupId).n;
+  if (remaining === 0) db.prepare('DELETE FROM groups WHERE id = ?').run(groupId);
+});
+
+router.post('/groups/:id/leave', ensureAuthenticated, (req, res) => {
+  const groupId = Number(req.params.id);
+  if (!isMember(groupId, req.user.id)) {
+    req.flash('error', 'Group not found.');
+    return res.redirect('/users');
+  }
+  leaveGroup(groupId, req.user.id);
+  req.flash('success', 'You left the group.');
+  res.redirect('/users');
+});
+
 module.exports = router;

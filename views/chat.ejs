@@ -12,6 +12,9 @@
       <img class="avatar" src="<%= group.avatar_url %>" alt="" />
       <div>
         <h1><%= group.name %></h1>
+        <form action="/groups/<%= group.id %>/leave" method="POST" class="inline-form" onsubmit="return confirm('Leave this group? You will stop receiving its messages.')">
+          <button type="submit" class="link-btn">Leave group</button>
+        </form>
         <p class="tile-sub">
           <%= group.members.length %> members:
           <%= group.members.map(function(m){ return m.display_name }).join(', ')%>
@@ -91,6 +94,10 @@
     return div.innerHTML;
   }
 
+  function escapeAttr(value) {
+    return String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
   function renderMessage(m) {
     const mine = m.sender_id === myId;
     const wrap = document.createElement('div');
@@ -103,12 +110,12 @@
         : '';
     const textLine = m.body ? `<div class="bubble-text">${escapeHtml(m.body)}</div>` : '';
     const imageLine = m.image_url
-      ? `<img class="bubble-image" src="${m.image_url}" alt="Shared image" />`
+      ? `<img class="bubble-image" src="${escapeAttr(m.image_url)}" alt="Shared image" />`
       : '';
     const time = new Date(m.created_at + 'Z').toLocaleString();
 
     wrap.innerHTML = `
-      <img class="avatar avatar-sm" src="${m.sender_avatar}" alt="" />
+      <img class="avatar avatar-sm" src="${escapeAttr(m.sender_avatar)}" alt="" />
       <div class="bubble">
         ${senderLine}
         ${textLine}
