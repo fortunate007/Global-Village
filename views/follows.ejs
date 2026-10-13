@@ -1,0 +1,25 @@
+<%- include('partials/header') %>
+<main>
+  <p><a href="/profile/<%= owner.id %>">← <%= owner.display_name %></a></p>
+  <h2><%= heading %></h2>
+  <% if (!people.length) { %><p>Nobody here yet.</p><% } %>
+  <ul class="follow-list">
+    <% people.forEach(u => { %>
+      <li>
+        <img class="avatar avatar-sm" src="<%= u.avatar_url %>" alt="" />
+        <div class="follow-who">
+          <a href="/profile/<%= u.id %>"><%= u.display_name %></a>
+          <span class="rail-meta">@<%= u.username %><% if (u.follows_me) { %> · Follows you<% } %></span>
+        </div>
+        <% if (u.id !== currentUser.id) { %>
+          <% if (u.i_follow) { %>
+            <form action="/unfollow/<%= u.id %>" method="POST" class="inline-form"><button type="submit" class="follow-btn">Following</button></form>
+          <% } else { %>
+            <form action="/follow/<%= u.id %>" method="POST" class="inline-form"><button type="submit" class="follow-btn"><%= u.follows_me ? 'Follow back' : 'Follow' %></button></form>
+          <% } %>
+        <% } %>
+      </li>
+    <% }) %>
+  </ul>
+</main>
+<%- include('partials/footer') %>

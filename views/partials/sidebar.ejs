@@ -43,6 +43,7 @@
             <a href="/profile/<%= u.id %>"><%= u.display_name %></a>
             <span class="rail-meta"><%= u.mutual ? u.mutual + (u.mutual === 1 ? ' mutual friend' : ' mutual friends') : (u.status_message || 'Say hello') %></span>
           </div>
+          <form action="/follow/<%= u.id %>" method="POST" class="inline-form"><button type="submit" class="follow-btn">Follow</button></form>
         </li>
       <% }) %>
     </ul>

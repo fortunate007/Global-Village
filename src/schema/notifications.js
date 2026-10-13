@@ -4,24 +4,25 @@ const tableSql = (name) => `
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     actor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     type TEXT NOT NULL CHECK (type IN
-      ('mention', 'reply', 'quote', 'like', 'repost', 'friend_request', 'friend_accept')),
+      ('mention', 'reply', 'quote', 'like', 'repost', 'friend_request', 'friend_accept', 'follow', 'follow_back')),
     post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     read_at DATETIME,
     CHECK (user_id != actor_id),
-    CHECK ((type IN ('friend_request', 'friend_accept')) = (post_id IS NULL))
+    CHECK ((type IN ('friend_request', 'friend_accept', 'follow', 'follow_back')) = (post_id IS NULL))
   )`;
 
 const TRIGGERS = [
   'notif_like_ai', 'notif_like_ad', 'notif_reply_ai', 'notif_quote_ai', 'notif_repost_ai',
-  'notif_repost_ad', 'notif_mention_ai', 'notif_friend_request_ai', 'notif_friend_request_ad',
+  'notif_repost_ad', 'notif_mention_ai', 'notif_friend_request_ai', 'notif_friend_request_ad', 'notif_follow_ai', 'notif_follow_ad',
 ];
 
 module.exports = function applyNotificationsSchema(db) {
+  require('./follows')(db);
   // Upgrade tables created before friend notifications existed (SQLite cannot alter a CHECK).
   // Triggers are dropped first because ALTER TABLE ... RENAME re-validates them.
   const existing = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'notifications'").get();
-  if (existing && !existing.sql.includes('friend_request')) {
+  if (existing && !existing.sql.includes('follow_back')) {
     TRIGGERS.forEach((t) => db.exec(`DROP TRIGGER IF EXISTS ${t}`));
     db.transaction(() => {
       db.exec(tableSql('notifications_new'));
@@ -110,6 +111,21 @@ module.exports = function applyNotificationsSchema(db) {
       WHERE EXISTS (SELECT 1 FROM users WHERE id = old.sender_id)
         AND EXISTS (SELECT 1 FROM users WHERE id = old.recipient_id)
         AND EXISTS (SELECT 1 FROM friends f WHERE f.user_id = old.sender_id AND f.friend_id = old.recipient_id);
+    END;
+
+    -- Follows: tell the person being followed. A follow that completes a mutual pair is a "follow back".
+    CREATE TRIGGER IF NOT EXISTS notif_follow_ai AFTER INSERT ON follows BEGIN
+      INSERT OR IGNORE INTO notifications (user_id, actor_id, type)
+      SELECT new.followee_id, new.follower_id,
+        CASE WHEN EXISTS (
+          SELECT 1 FROM follows f WHERE f.follower_id = new.followee_id AND f.followee_id = new.follower_id
+        ) THEN 'follow_back' ELSE 'follow' END;
+    END;
+
+    -- Unfollowing removes the notification, so follow/unfollow toggling cannot stack them up
+    CREATE TRIGGER IF NOT EXISTS notif_follow_ad AFTER DELETE ON follows BEGIN
+      DELETE FROM notifications
+      WHERE type IN ('follow', 'follow_back') AND user_id = old.followee_id AND actor_id = old.follower_id;
     END;
   `);
 };

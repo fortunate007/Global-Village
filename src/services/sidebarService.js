@@ -66,6 +66,7 @@ function people(userId, limit = 3) {
       AND u.id NOT IN (SELECT id FROM my)
       AND u.id NOT IN (SELECT recipient_id FROM friend_requests WHERE sender_id = @u)
       AND u.id NOT IN (SELECT sender_id FROM friend_requests WHERE recipient_id = @u)
+      AND u.id NOT IN (SELECT followee_id FROM follows WHERE follower_id = @u)
       AND u.id NOT IN ${HIDDEN}
     ORDER BY mutual DESC, u.last_seen DESC, u.id ASC
     LIMIT @limit`).all({ u: userId, limit });

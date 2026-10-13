@@ -5,6 +5,7 @@ const { ensureAuthenticated } = require('../middleware/auth');
 const { avatarUpload } = require('../config/upload');
 const { isValidDisplayName, withinLength } = require('../utils/validators');
 const safety = require('../services/safetyService');
+const followService = require('../services/followService');
 const { removeAvatar } = require('../utils/avatarFiles');
 
 const router = express.Router();
@@ -65,7 +66,7 @@ router.get('/profile/:id', ensureAuthenticated, (req, res) => {
     req.flash('error', 'User not found.');
     return res.redirect('/users');
   }
-  res.render('profile', { title: user.display_name, profileUser: user });
+  res.render('profile', { title: user.display_name, profileUser: user, follow: followService.profileState(req.user.id, user.id) });
 });
 
 module.exports = router;

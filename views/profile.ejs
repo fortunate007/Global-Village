@@ -11,7 +11,18 @@
     <p class="bio"><%= profileUser.bio %></p>
   <% } %>
 
+  <p class="follow-counts">
+    <a href="/profile/<%= profileUser.id %>/following"><strong><%= follow.following %></strong> Following</a> ·
+    <a href="/profile/<%= profileUser.id %>/followers"><strong><%= follow.followers %></strong> Followers</a>
+    <% if (follow.followsMe && currentUser.id !== profileUser.id) { %> · <span class="follows-you">Follows you</span><% } %>
+  </p>
+
   <% if (currentUser.id !== profileUser.id) { %>
+    <% if (follow.iFollow) { %>
+      <form action="/unfollow/<%= profileUser.id %>" method="POST" class="inline-form"><button type="submit" class="btn btn-secondary follow-btn">Following</button></form>
+    <% } else { %>
+      <form action="/follow/<%= profileUser.id %>" method="POST" class="inline-form"><button type="submit" class="btn btn-primary follow-btn"><%= follow.followsMe ? 'Follow back' : 'Follow' %></button></form>
+    <% } %>
     <a class="btn btn-primary" href="/messages/<%= profileUser.id %>">Send message</a>
   <% } else { %>
     <a class="btn btn-secondary" href="/profile">Edit profile</a>

@@ -26,6 +26,7 @@ function requireTarget(me, targetId) {
 }
 
 exports.block = (me, target) => {
+  require('./followService').removeBetween(me, target);
   requireTarget(me, target);
   db.prepare('INSERT OR IGNORE INTO blocks (blocker_id, blocked_id) VALUES (?, ?)').run(me, target);
 };

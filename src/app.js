@@ -54,6 +54,7 @@ app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/profile'));
 app.use('/', require('./routes/users'));
 app.use('/', require('./routes/friends'));
+app.use('/', require('./routes/follows'));
 app.use('/', require('./routes/messages'));
 app.use('/', require('./routes/groups'));
 app.use('/posts', require('./routes/posts'));

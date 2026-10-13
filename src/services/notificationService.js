@@ -8,6 +8,8 @@ const VERBS = {
   mention: 'mentioned you',
   friend_request: 'sent you a friend request',
   friend_accept: 'accepted your friend request',
+  follow: 'started following you',
+  follow_back: 'followed you back',
 };
 
 // Notifications from people you blocked or muted (or who blocked you) are never shown, counted or pushed
@@ -18,13 +20,14 @@ const VISIBLE = `n.actor_id NOT IN (
 )`;
 
 const SELECT = `
-  SELECT n.id, n.user_id, n.type, n.post_id, n.created_at, n.read_at,
+  SELECT n.id, n.user_id, n.actor_id, n.type, n.post_id, n.created_at, n.read_at,
          u.username, u.display_name, u.avatar_url, p.body
   FROM notifications n
   JOIN users u ON u.id = n.actor_id
   LEFT JOIN posts p ON p.id = n.post_id`;
 
 function hrefFor(n) {
+  if (n.type === 'follow' || n.type === 'follow_back') return '/profile/' + n.actor_id;
   if (n.post_id) return `/posts/${n.post_id}`;
   return n.type === 'friend_request' ? '/friends/requests' : '/friends';
 }
