@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><%= title %> · <%= appName %></title>
   <link rel="stylesheet" href="/css/style.css" />
+  <script src="/js/usermenu.js" defer></script>
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
 </head>
 <body>
-  <a href="/account/delete">Delete my account</a>
-  <a href="/account/export">Download my data</a>
-  <a href="/account/security">Password and devices</a>
   <% if (locals.emailPending) { %>
   <p class="notice">Please confirm your email address. <a href="/account/verify-email">Resend the link or fix a typo</a>.</p>
 <% } %>
@@ -27,14 +25,25 @@
         <a href="/users">People</a>
         <a href="/friends">Friends<% if (pendingRequests > 0) { %> <span class="badge"><%= pendingRequests %></span><% } %></a>
         <a href="/groups/new">New Group</a>
-        <a href="/profile">Edit Profile</a>
-        <a class="me" href="/profile/<%= currentUser.id %>">
-          <img class="avatar avatar-sm" src="<%= currentUser.avatar_url %>" alt="" />
-          <%= currentUser.display_name %>
-        </a>
-        <form action="/logout" method="POST" class="inline-form">
-          <button type="submit" class="link-btn">Log out</button>
-        </form>
+        <details class="usermenu">
+          <summary class="me">
+            <img class="avatar avatar-sm" src="<%= currentUser.avatar_url %>" alt="" />
+            <%= currentUser.display_name %>
+            <span class="caret" aria-hidden="true">▾</span>
+          </summary>
+          <div class="menu-panel">
+            <a href="/profile/<%= currentUser.id %>">View profile</a>
+            <a href="/profile">Edit profile</a>
+            <a href="/account/security">Password and devices</a>
+            <a href="/account/export">Download my data</a>
+            <hr />
+            <form action="/logout" method="POST">
+              <button type="submit">Log out</button>
+            </form>
+            <hr />
+            <a class="danger" href="/account/delete">Delete my account</a>
+          </div>
+        </details>
       </nav>
     <% } %>
   </header>
