@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const db = require('../db');
-const { isValidPassword } = require('../utils/validators');
+const { validate: validatePassword } = require('../utils/passwordPolicy');
 
 // Errors safe to show to the user. code is 'wrong_password' or 'invalid'.
 class CredentialError extends Error {
@@ -29,7 +29,9 @@ exports.changePassword = (userId, current, proposed, confirmation) => {
 
   const next = asText(proposed);
   if (next !== asText(confirmation)) throw new CredentialError('Passwords do not match.', 'invalid');
-  if (!isValidPassword(next)) throw new CredentialError('Password must be 6-72 characters.', 'invalid');
+  const identity = db.prepare('SELECT username, email FROM users WHERE id = ?').get(userId);
+  const problems = validatePassword(next, identity);
+  if (problems.length) throw new CredentialError(problems[0], 'invalid');
   if (next === asText(current)) throw new CredentialError('Choose a password you are not using now.', 'invalid');
 
   const hash = bcrypt.hashSync(next, 10);

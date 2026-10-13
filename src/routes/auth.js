@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../db');
 const { ensureGuest } = require('../middleware/auth');
 const { isValidUsername, isValidEmail, isValidPassword, isValidDisplayName } = require('../utils/validators');
+const { validate: passwordProblems } = require('../utils/passwordPolicy');
 
 const router = express.Router();
 
@@ -31,8 +32,8 @@ router.post('/register', ensureGuest, (req, res) => {
   if (displayName && !isValidDisplayName(displayName)) {
     errors.push('Display name must be 1-40 characters.');
   }
-  if (password && !isValidPassword(password)) {
-    errors.push('Password must be 6-72 characters.');
+  if (password) {
+    passwordProblems(password, { username, email }).forEach((message) => errors.push(message));
   }
   if (password !== confirmPassword) {
     errors.push('Passwords do not match.');
