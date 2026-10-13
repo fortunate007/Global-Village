@@ -1,0 +1,53 @@
+<% if (typeof currentUser !== 'undefined' && currentUser && typeof sidebar === 'function') { %>
+<% const sb = sidebar(); %>
+<aside class="rail" aria-label="Trends and suggestions">
+  <section class="rail-card">
+    <h3>Trends</h3>
+    <% if (!sb.trends.length) { %>
+      <p class="rail-empty">Nothing trending yet. Start one with #something.</p>
+    <% } else { %>
+      <ol class="rail-list">
+        <% sb.trends.forEach(t => { %>
+          <li>
+            <a href="/tags/<%= encodeURIComponent(t.tag) %>">#<%= t.tag %></a>
+            <span class="rail-meta"><%= t.count %> <%= t.count === 1 ? 'post' : 'posts' %></span>
+          </li>
+        <% }) %>
+      </ol>
+      <a class="rail-more" href="/tags">Show more</a>
+    <% } %>
+  </section>
+
+  <% if (sb.popular.length) { %>
+  <section class="rail-card">
+    <h3>Popular this week</h3>
+    <ul class="rail-list">
+      <% sb.popular.forEach(p => { %>
+        <li>
+          <a href="/posts/<%= p.id %>"><%= p.excerpt %></a>
+          <span class="rail-meta"><%= p.author %> · <%= p.likes %> <%= p.likes === 1 ? 'like' : 'likes' %></span>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+  <% } %>
+
+  <% if (sb.people.length) { %>
+  <section class="rail-card">
+    <h3>People you may know</h3>
+    <ul class="rail-people">
+      <% sb.people.forEach(u => { %>
+        <li>
+          <img class="avatar avatar-sm" src="<%= u.avatar_url %>" alt="" />
+          <div>
+            <a href="/profile/<%= u.id %>"><%= u.display_name %></a>
+            <span class="rail-meta"><%= u.mutual ? u.mutual + (u.mutual === 1 ? ' mutual friend' : ' mutual friends') : (u.status_message || 'Say hello') %></span>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+    <a class="rail-more" href="/users">See everyone</a>
+  </section>
+  <% } %>
+</aside>
+<% } %>

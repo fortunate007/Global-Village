@@ -48,6 +48,7 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => { res.locals.unreadNotifications = req.user ? require('./services/notificationService').unreadCount(req.user.id) : 0; next(); });
 app.use(require('./realtime/notificationRelay').middleware);
+app.use((req, res, next) => { res.locals.sidebar = require('./services/sidebarService').lazyFor(req.user); next(); });
 require('./middleware/security').applyLate(app);
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/profile'));
