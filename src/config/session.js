@@ -42,6 +42,9 @@ function createSessionMiddleware() {
         dir: path.join(__dirname, '..', '..', 'data'),
       });
 
+  // Housekeeping: expired session rows are removed from the sessions database in the background
+  if (!isTest) require('../services/sessionMaintenance').schedule();
+
   return session({
     store,
     secret: resolveSecret(),
