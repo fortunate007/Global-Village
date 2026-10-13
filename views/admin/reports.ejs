@@ -6,7 +6,7 @@
     <article class="report">
       <p>
         <strong><%= reasons[r.reason] %></strong>
-        · reported by @<%= r.reporter_username %>
+        · reported by <%= r.reporter_username ? '@' + r.reporter_username : 'a deleted account' %>
         · post by <%= r.author_username ? '@' + r.author_username : 'a deleted account' %>
         · <small><%= new Date(r.created_at + 'Z').toLocaleString() %></small>
       </p>

@@ -59,7 +59,7 @@ const removeAccount = db.transaction((userId) => {
   }
 
   // Everything else (posts, likes, bookmarks, friends, blocks, mutes, mentions, notifications,
-  // reports, messages) is removed by the database's cascading rules.
+  // messages) is removed by the database's cascading rules. Reports they filed are kept without their name.
   db.prepare('DELETE FROM users WHERE id = ?').run(userId);
 
   return { chat: [...chat], avatars: [...avatars].filter(Boolean) };

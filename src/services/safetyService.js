@@ -146,7 +146,7 @@ exports.openReports = (limit = 100) =>
       `SELECT r.id, r.reason, r.details, r.post_id, r.post_body, r.post_author_id, r.created_at,
               ru.username AS reporter_username, au.username AS author_username
        FROM reports r
-       JOIN users ru ON ru.id = r.reporter_id
+       LEFT JOIN users ru ON ru.id = r.reporter_id
        LEFT JOIN users au ON au.id = r.post_author_id
        WHERE r.status = 'open'
        ORDER BY r.created_at DESC, r.id DESC
@@ -191,3 +191,24 @@ exports.blockedIds = (userId) =>
       .all(userId, userId)
       .map((r) => r.id)
   );
+
+// ---- Keeping the reports table tidy ----
+
+function assertDays(days) {
+  if (!Number.isInteger(days) || days < 1) throw new SafetyError('days must be a whole number, 1 or more.');
+}
+
+// Resolved and dismissed reports older than the given number of days. Open reports are never included.
+exports.countPrunable = (days) => {
+  assertDays(days);
+  return db
+    .prepare("SELECT COUNT(*) AS n FROM reports WHERE status != 'open' AND resolved_at < datetime('now', ?)")
+    .get(`-${days} days`).n;
+};
+
+exports.pruneResolved = (days) => {
+  assertDays(days);
+  return db
+    .prepare("DELETE FROM reports WHERE status != 'open' AND resolved_at < datetime('now', ?)")
+    .run(`-${days} days`).changes;
+};
