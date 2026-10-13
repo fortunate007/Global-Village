@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Download your data</h2>
+  <p>You get one file (JSON) with a copy of what you have on Global Village:</p>
+  <ul>
+    <li>Your profile, posts (with their edit history), reposts, likes and bookmarks.</li>
+    <li>Your friends, friend requests, and the accounts you blocked or muted.</li>
+    <li>Your direct messages (both sides of each conversation), your groups, and the group messages you sent.</li>
+    <li>Your notifications and the reports you filed.</li>
+  </ul>
+  <p>Pictures are listed as links, and the picture files are not inside the download.</p>
+  <p><strong>The file contains private messages. Keep it somewhere safe.</strong></p>
+
+  <form method="POST" action="/account/export">
+    <label>Your password
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <button>Download my data</button>
+    <a href="/profile">Cancel</a>
+  </form>
+</main>
+<%- include('../partials/footer') %>
