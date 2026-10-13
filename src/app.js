@@ -30,6 +30,7 @@ app.use(sessionMiddleware);
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(require('./middleware/sessionEpoch').middleware);
 app.use(flash());
 app.use(touchLastSeen);
 
@@ -62,6 +63,7 @@ app.use('/', require('./routes/notifications'));
 app.use('/', require('./routes/safety'));
 app.use('/', require('./routes/account'));
 app.use('/', require('./routes/export'));
+app.use('/', require('./routes/credentials'));
 app.use('/', require('./routes/admin'));
 
 app.use((req, res) => {

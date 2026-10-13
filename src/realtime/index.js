@@ -1,6 +1,7 @@
 'use strict';
 
 const { Server } = require('socket.io');
+const db = require('../db');
 
 /**
  * Create and configure the Socket.IO server.
@@ -27,6 +28,10 @@ function createSocketServer(httpServer, sessionMiddleware, options = {}) {
     const session = socket.request.session;
     const userId = session && session.passport && session.passport.user;
     if (!userId) return next(new Error('Unauthorized'));
+    // Sessions from before a password change or "log out other devices" are no longer valid
+    const account = db.prepare('SELECT session_epoch FROM users WHERE id = ?').get(userId);
+    const stamped = Number.isInteger(session.authEpoch) ? session.authEpoch : 0;
+    if (account && stamped !== account.session_epoch) return next(new Error('Unauthorized'));
     socket.userId = String(userId);
     next();
   });

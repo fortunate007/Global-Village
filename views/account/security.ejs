@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Password and devices</h2>
+
+  <h3>Change password</h3>
+  <p>After you change it, every other device is logged out.</p>
+  <form method="POST" action="/account/password">
+    <label>Current password
+      <input type="password" name="currentPassword" required autocomplete="current-password">
+    </label>
+    <label>New password (6-72 characters)
+      <input type="password" name="newPassword" required minlength="6" maxlength="72" autocomplete="new-password">
+    </label>
+    <label>Repeat new password
+      <input type="password" name="confirmPassword" required minlength="6" maxlength="72" autocomplete="new-password">
+    </label>
+    <button>Change password</button>
+  </form>
+
+  <h3>Log out other devices</h3>
+  <p>Use this if you signed in somewhere you no longer control. This device stays logged in and your password is not changed.</p>
+  <form method="POST" action="/account/sessions/revoke">
+    <label>Current password
+      <input type="password" name="currentPassword" required autocomplete="current-password">
+    </label>
+    <button>Log out other devices</button>
+  </form>
+
+  <p><a href="/profile">Back to profile</a></p>
+</main>
+<%- include('../partials/footer') %>
