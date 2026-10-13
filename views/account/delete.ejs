@@ -1,0 +1,30 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Delete your account</h2>
+  <p><strong>This is permanent and cannot be undone.</strong></p>
+
+  <p>You currently have <%= summary.posts %> post(s), <%= summary.messages %> sent message(s) and <%= summary.friends %> friend(s).</p>
+
+  <h3>What will be deleted</h3>
+  <ul>
+    <li>Your profile, picture, posts, likes, bookmarks, friends, blocks, mutes and notifications.</li>
+    <li>Replies and reposts that other people made to your posts disappear together with those posts.</li>
+    <li>Direct messages you sent or received are deleted for both people, including pictures.</li>
+    <li>Messages you sent in groups are deleted. Groups you created are handed to another member, or deleted if nobody else is in them.</li>
+    <li>Reports you filed are removed.</li>
+    <li>Your username becomes available for anyone to register.</li>
+  </ul>
+
+  <form method="POST" action="/account/delete">
+    <label>Your password
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <label>
+      <input type="checkbox" name="confirm" value="yes" required>
+      I understand this cannot be undone
+    </label>
+    <button>Delete my account</button>
+    <a href="/profile">Cancel</a>
+  </form>
+</main>
+<%- include('../partials/footer') %>

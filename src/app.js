@@ -60,6 +60,7 @@ app.use('/', require('./routes/entities'));
 app.use('/', require('./routes/search'));
 app.use('/', require('./routes/notifications'));
 app.use('/', require('./routes/safety'));
+app.use('/', require('./routes/account'));
 app.use('/', require('./routes/admin'));
 
 app.use((req, res) => {

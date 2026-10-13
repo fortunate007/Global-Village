@@ -78,9 +78,16 @@ function applyLate(app) {
   app.use(sameOrigin());
 
   // Limits are switched off while running the test suite
-  const skip = () => process.env.NODE_ENV === 'test';
+  const skip = () => process.env.NODE_ENV === 'test' && !process.env.TEST_RATE_LIMITS;
   const limits = {
-    login: createLimiter({ windowMs: 15 * 60 * 1000, limit: 10, skipSuccessfulRequests: true, skip }),
+    login: createLimiter({
+      windowMs: 15 * 60 * 1000,
+      limit: 10,
+      skipSuccessfulRequests: true,
+      // The login route redirects on success AND on failure, so the status code cannot tell them apart
+      requestWasSuccessful: (req) => req.isAuthenticated(),
+      skip,
+    }),
     register: createLimiter({ windowMs: 60 * 60 * 1000, limit: 10, skip }),
     posting: createLimiter({ windowMs: 10 * 60 * 1000, limit: 60, skip }),
     reports: createLimiter({ windowMs: 60 * 60 * 1000, limit: 20, skip }),
