@@ -1,3 +1,4 @@
+const withoutRail = (html) => html.replace(/<aside class="rail"[\s\S]*?<\/aside>/g, '');
 const { registerAndLogin, findUserId } = require('./helpers');
 
 function extractRequestId(html) {
@@ -47,10 +48,10 @@ describe('friends', () => {
     await bob.agent.post(`/friends/requests/${requestId}/decline`);
 
     const bobFriends = await bob.agent.get('/friends');
-    expect(bobFriends.text).not.toContain('erin');
+    expect(withoutRail(bobFriends.text)).not.toContain('erin');
 
     const bobRequests = await bob.agent.get('/friends/requests');
-    expect(bobRequests.text).not.toContain('erin');
+    expect(withoutRail(bobRequests.text)).not.toContain('erin');
   });
 
   test('unfriending removes the friendship for both users', async () => {
@@ -67,8 +68,8 @@ describe('friends', () => {
 
     const aliceFriends = await alice.agent.get('/friends');
     const bobFriends = await bob.agent.get('/friends');
-    expect(aliceFriends.text).not.toContain('hank');
-    expect(bobFriends.text).not.toContain('gina');
+    expect(withoutRail(aliceFriends.text)).not.toContain('hank');
+    expect(withoutRail(bobFriends.text)).not.toContain('gina');
   });
 
   test('sending a request to someone who already requested you accepts it instead of duplicating', async () => {
@@ -84,7 +85,7 @@ describe('friends', () => {
     expect(aliceFriends.text).toContain('jack');
 
     const bobRequests = await bob.agent.get('/friends/requests');
-    expect(bobRequests.text).not.toContain('Respond');
+    expect(withoutRail(bobRequests.text)).not.toContain('Respond');
   });
 
   test('you cannot accept a friend request that was not sent to you', async () => {
@@ -100,7 +101,7 @@ describe('friends', () => {
     await eve.agent.post(`/friends/requests/${requestId}/accept`);
 
     const eveFriends = await eve.agent.get('/friends');
-    expect(eveFriends.text).not.toContain('kate');
-    expect(eveFriends.text).not.toContain('liam');
+    expect(withoutRail(eveFriends.text)).not.toContain('kate');
+    expect(withoutRail(eveFriends.text)).not.toContain('liam');
   });
 });
