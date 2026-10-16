@@ -130,3 +130,15 @@ exports.resetPassword = (token, proposed, confirmation) => {
 
   return row.user_id;
 };
+
+// Creates a short-lived reset link token for an account that has just proven itself another way (for example by
+// entering a code sent to its verified phone). The caller redirects to /reset-password/<token>.
+exports.issueTokenForUser = (userId, minutes = 15) => {
+  const token = crypto.randomBytes(32).toString('base64url');
+  db.prepare("INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, datetime('now', ?))").run(
+    userId,
+    hashOf(token),
+    `+${minutes} minutes`
+  );
+  return token;
+};
