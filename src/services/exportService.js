@@ -9,7 +9,7 @@ const DEFAULT_LIMIT = 50000;
 exports.buildExport = (userId, { limit = DEFAULT_LIMIT } = {}) => {
   const profile = db
     .prepare(
-      `SELECT id, username, email, display_name, bio, avatar_url, status_message, created_at, last_seen
+      `SELECT id, username, email, display_name, bio, avatar_url, status_message, created_at, last_seen, phone, phone_verified_at
        FROM users WHERE id = ?`
     )
     .get(userId);

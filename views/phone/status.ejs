@@ -1,0 +1,46 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Phone number</h2>
+
+  <% if (!phone) { %>
+    <p>Add a phone number to verify it and to be able to reset your password by text message. It is never shown to other people.</p>
+  <% } else if (verified) { %>
+    <p><strong><%= phone %></strong> is verified. You can use it to reset your password by text message.</p>
+  <% } else { %>
+    <p>We sent a 6-digit code to <strong><%= phone %></strong>. It works for <%= minutes %> minutes.</p>
+    <form method="POST" action="/account/phone/verify">
+      <label>Code
+        <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" required autofocus>
+      </label>
+      <button>Verify</button>
+    </form>
+    <form method="POST" action="/account/phone/resend">
+      <button>Send a new code</button>
+    </form>
+  <% } %>
+
+  <h3><%= phone ? 'Change number' : 'Add a number' %></h3>
+  <p>Use the country code (+254...) or start with 0. Changing the number means verifying the new one.</p>
+  <form method="POST" action="/account/phone">
+    <label>Phone number
+      <input type="tel" name="phone" required maxlength="25" autocomplete="tel" placeholder="0712 345 678">
+    </label>
+    <label>Your password
+      <input type="password" name="password" required autocomplete="current-password">
+    </label>
+    <button><%= phone ? 'Change number' : 'Send code' %></button>
+  </form>
+
+  <% if (phone) { %>
+    <h3>Remove number</h3>
+    <form method="POST" action="/account/phone/remove">
+      <label>Your password
+        <input type="password" name="password" required autocomplete="current-password">
+      </label>
+      <button>Remove my phone number</button>
+    </form>
+  <% } %>
+
+  <p><a href="/profile">Back to profile</a></p>
+</main>
+<%- include('../partials/footer') %>

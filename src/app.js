@@ -70,6 +70,7 @@ app.use('/', require('./routes/export'));
 app.use('/', require('./routes/credentials'));
 app.use('/', require('./routes/recovery'));
 app.use('/', require('./routes/emailVerification'));
+app.use('/', require('./routes/phone'));
 app.use('/', require('./routes/admin'));
 app.use('/', require('./routes/adminUsers'));
 

@@ -1,0 +1,13 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Enter your code</h2>
+  <p>If <strong><%= masked %></strong> is verified on an account, we sent it a 6-digit code.</p>
+  <form method="POST" action="/forgot-password/phone/code">
+    <label>Code
+      <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" required autofocus>
+    </label>
+    <button>Continue</button>
+    <a href="/forgot-password/phone">Use a different number</a>
+  </form>
+</main>
+<%- include('../partials/footer') %>

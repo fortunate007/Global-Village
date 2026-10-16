@@ -1,0 +1,13 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Reset your password by text message</h2>
+  <p>Enter the phone number you verified on your account. If it matches, we will text you a code.</p>
+  <form method="POST" action="/forgot-password/phone">
+    <label>Phone number
+      <input type="tel" name="phone" required maxlength="25" autocomplete="tel" placeholder="0712 345 678" autofocus>
+    </label>
+    <button>Send code</button>
+    <a href="/forgot-password">Use email instead</a>
+  </form>
+</main>
+<%- include('../partials/footer') %>

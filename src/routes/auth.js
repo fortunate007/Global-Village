@@ -6,6 +6,7 @@ const { ensureGuest } = require('../middleware/auth');
 const { isValidUsername, isValidEmail, isValidPassword, isValidDisplayName } = require('../utils/validators');
 const { validate: passwordProblems } = require('../utils/passwordPolicy');
 const emailVerification = require('../services/emailVerificationService');
+const phoneVerification = require('../services/phoneService');
 
 const router = express.Router();
 
@@ -70,11 +71,19 @@ router.post('/register', ensureGuest, (req, res) => {
 
     // Starts email confirmation for the new address (does nothing while testing unless switched on)
     const verificationStarted = emailVerification.startForNewAccount(Number(info.lastInsertRowid));
+    // Optional phone number from the registration form. Never blocks registration.
+    const phoneOutcome = phoneVerification.startForNewAccount(Number(info.lastInsertRowid), req.body.phone);
 
     req.login({ id: info.lastInsertRowid }, (err) => {
       if (err) {
         req.flash('error', 'Account created, please log in.');
         return res.redirect('/login');
+      }
+      // The phone number, if one was given (set after login, which starts a fresh session)
+      if (phoneOutcome === 'sent') {
+        req.flash('success', 'We texted a code to your phone number. Enter it on the Phone page to verify the number.');
+      } else if (phoneOutcome) {
+        req.flash('error', 'We could not use that phone number. You can add it later on the Phone page.');
       }
       // Set after login, which starts a fresh session
       if (verificationStarted) {
