@@ -1,0 +1,65 @@
+<%- include('partials/header') %>
+<main>
+  <section class="profile-header">
+    <img src="<%= profileUser.avatar_url %>" alt="" width="96" height="96">
+    <h2><%= profileUser.display_name %></h2>
+    <p>@<%= profileUser.username %> · Joined <%= new Date(profileUser.created_at + 'Z').toLocaleDateString() %> · <%= postCount %> post(s)</p>
+    <% if (currentUser && profileUser.bio) { %><p><%= profileUser.bio %></p><% } %>
+    <% if (currentUser && profileUser.status_message) { %><p><em><%= profileUser.status_message %></em></p><% } %>
+
+    <% if (isSelf) { %>
+      <p><a href="/profile">Edit profile</a></p>
+    <% } else if (currentUser) { %>
+      <p>
+        <a href="/messages/<%= profileUser.id %>">Message</a>
+
+        <% if (relation.isFriend) { %>
+          <span>Friends</span>
+          <form method="POST" action="/users/<%= profileUser.id %>/unfriend" style="display:inline"><button>Remove friend</button></form>
+        <% } else if (relation.requestSent) { %>
+          <span>Friend request sent</span>
+        <% } else if (relation.requestReceived) { %>
+          <a href="/friends/requests">Respond to their friend request</a>
+        <% } else { %>
+          <form method="POST" action="/friends/request/<%= profileUser.id %>" style="display:inline"><button>Add friend</button></form>
+        <% } %>
+
+        <% if (relation.isMuted) { %>
+          <form method="POST" action="/safety/unmute/<%= profileUser.id %>" style="display:inline"><button>Unmute</button></form>
+        <% } else { %>
+          <form method="POST" action="/safety/mute/<%= profileUser.id %>" style="display:inline"><button>Mute</button></form>
+        <% } %>
+        <form method="POST" action="/safety/block/<%= profileUser.id %>" style="display:inline"
+              onsubmit="return confirm('Block this user? This also removes any friendship.')">
+          <button>Block</button>
+        </form>
+      </p>
+    <% } else { %>
+      <p><a href="/login">Log in</a> to message or add this person as a friend.</p>
+    <% } %>
+  </section>
+
+  <% if (muted) { %>
+    <p>You muted @<%= profileUser.username %>. Their posts and notifications are hidden from you.</p>
+  <% } else { %>
+    <nav>
+      <a href="/users/<%= encodeURIComponent(profileUser.username) %>"><%= tab === 'posts' ? '[Posts]' : 'Posts' %></a>
+      <a href="/users/<%= encodeURIComponent(profileUser.username) %>?tab=replies"><%= tab === 'replies' ? '[Replies]' : 'Replies' %></a>
+    </nav>
+
+    <% if (!items.length) { %><p><%= tab === 'replies' ? 'No replies to show.' : 'No posts to show.' %></p><% } %>
+    <% items.forEach(row => { %>
+      <% if (row.original) { %>
+        <small>↻ @<%= row.username %> reposted</small>
+        <%- include('partials/post-card', { p: row.original }) %>
+      <% } else { %>
+        <%- include('partials/post-card', { p: row }) %>
+      <% } %>
+    <% }) %>
+
+    <% if (hasMore) { %>
+      <p><a href="/users/<%= encodeURIComponent(profileUser.username) %>?tab=<%= tab %>&before=<%= lastId %>">Older</a></p>
+    <% } %>
+  <% } %>
+</main>
+<%- include('partials/footer') %>

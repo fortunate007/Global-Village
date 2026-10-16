@@ -5,14 +5,14 @@
      && (Date.now() - new Date(p.created_at + 'Z').getTime()) / 60000 < editWindow; %>
 <article class="post">
   <img src="<%= p.avatar_url %>" alt="" width="40" height="40">
-  <strong><%= p.display_name %></strong>
+  <strong><a href="/users/<%= p.username %>"><%= p.display_name %></a></strong>
   <small>@<%= p.username %> · <%= new Date(p.created_at + 'Z').toLocaleString() %>
     <% if (p.edited_at) { %>· <a href="/posts/<%= p.id %>/history">edited</a><% } %>
   </small>
   <% if (p.body) { %><p><%- linkify(p.body) %></p><% } %>
   <% if (p.quoted) { %>
     <blockquote>
-      <strong><%= p.quoted.display_name %></strong> <small>@<%= p.quoted.username %></small>
+      <strong><a href="/users/<%= p.quoted.username %>"><%= p.quoted.display_name %></a></strong> <small>@<%= p.quoted.username %></small>
       <p><%- linkify(p.quoted.body) %></p>
       <a href="/posts/<%= p.quoted.id %>">View post</a>
     </blockquote>
