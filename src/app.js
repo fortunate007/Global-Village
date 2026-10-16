@@ -57,6 +57,7 @@ app.use('/', require('./routes/users'));
 app.use('/', require('./routes/publicProfile'));
 app.use('/', require('./routes/friends'));
 app.use('/', require('./routes/follows'));
+require('./schema/follow-safety')(require('./db'));
 app.use('/', require('./routes/messages'));
 app.use('/', require('./routes/groups'));
 app.use('/posts', require('./routes/posts'));

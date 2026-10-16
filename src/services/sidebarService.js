@@ -7,6 +7,7 @@ const HIDDEN = `(
   SELECT blocked_id FROM blocks WHERE blocker_id = @u
   UNION SELECT blocker_id FROM blocks WHERE blocked_id = @u
   UNION SELECT muted_id FROM mutes WHERE muter_id = @u
+  UNION SELECT id FROM users WHERE suspended_at IS NOT NULL
 )`;
 
 const safe = (fn) => {
