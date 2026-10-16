@@ -1,0 +1,21 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Accounts</h2>
+  <p><a href="/admin/reports">Reports</a> · <a href="/admin/actions">Moderation log</a></p>
+
+  <form method="GET" action="/admin/users">
+    <input type="search" name="q" value="<%= q %>" placeholder="Search by username or display name" maxlength="50">
+    <button>Search</button>
+  </form>
+
+  <% if (q) { %>
+    <h3>Results for "<%= q %>"</h3>
+    <% if (!results.length) { %><p>No accounts found.</p><% } %>
+    <%- include('_user-rows', { list: results }) %>
+  <% } %>
+
+  <h3>Suspended accounts</h3>
+  <% if (!suspended.length) { %><p>No accounts are suspended.</p><% } %>
+  <%- include('_user-rows', { list: suspended }) %>
+</main>
+<%- include('../partials/footer') %>

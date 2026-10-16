@@ -26,6 +26,10 @@ module.exports = function configurePassport(passport) {
           const user = candidates.find((u) => bcrypt.compareSync(password, u.password_hash));
           if (!user) return done(null, false, { message: WRONG_PASSWORD });
 
+          // A suspended account cannot log in. This is revealed only after the correct password was
+          // given, so it cannot be used to find out which usernames exist.
+          if (user.suspended_at) return done(null, false, { message: 'This account has been suspended.' });
+
           return done(null, user);
         } catch (err) {
           return done(err);

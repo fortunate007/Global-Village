@@ -14,6 +14,14 @@
       <% if (r.details) { %><p>Reporter's note: <%= r.details %></p><% } %>
       <% if (r.post_id) { %><a href="/posts/<%= r.post_id %>">View post</a><% } else { %><small>Post already deleted</small><% } %>
       <form method="POST" action="/admin/reports/<%= r.id %>/dismiss" style="display:inline"><button>Dismiss</button></form>
+      <% if (r.author_username) { %>
+        <form method="POST" action="/admin/users/<%= r.post_author_id %>/suspend" style="display:inline"
+              onsubmit="return confirm('Suspend this account? They will be logged out and unable to log in.')">
+          <input type="hidden" name="from" value="reports">
+          <input type="hidden" name="reason" value="Reported post (report #<%= r.id %>)">
+          <button>Suspend author</button>
+        </form>
+      <% } %>
       <form method="POST" action="/admin/reports/<%= r.id %>/resolve" style="display:inline"><button>Resolve</button></form>
       <% if (r.post_id) { %>
         <form method="POST" action="/admin/reports/<%= r.id %>/remove" style="display:inline"

@@ -1,0 +1,22 @@
+<ul>
+  <% list.forEach(u => { %>
+    <li>
+      <strong><%= u.display_name %></strong> (@<%= u.username %>)
+      <% if (u.is_admin) { %> · admin<% } %>
+      <% if (currentUser && currentUser.id === u.id) { %> · you<% } %>
+      · joined <%= new Date(u.created_at + 'Z').toLocaleDateString() %>
+      · <a href="/users/<%= encodeURIComponent(u.username) %>">profile</a>
+
+      <% if (u.suspended_at) { %>
+        <br><strong>Suspended</strong> <%= new Date(u.suspended_at + 'Z').toLocaleString() %><% if (u.suspended_reason) { %>: <%= u.suspended_reason %><% } %>
+        <form method="POST" action="/admin/users/<%= u.id %>/unsuspend" style="display:inline"><button>Unsuspend</button></form>
+      <% } else if (!u.is_admin && !(currentUser && currentUser.id === u.id)) { %>
+        <form method="POST" action="/admin/users/<%= u.id %>/suspend" style="display:inline"
+              onsubmit="return confirm('Suspend this account? They will be logged out and unable to log in.')">
+          <input type="text" name="reason" maxlength="500" placeholder="Reason (optional, only admins see it)">
+          <button>Suspend</button>
+        </form>
+      <% } %>
+    </li>
+  <% }) %>
+</ul>

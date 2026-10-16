@@ -1,0 +1,18 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Moderation log</h2>
+  <p><a href="/admin/users">Accounts</a> · <a href="/admin/reports">Reports</a></p>
+
+  <% if (!actions.length) { %><p>Nothing has been logged yet.</p><% } %>
+  <ul>
+    <% actions.forEach(a => { %>
+      <li>
+        <%= new Date(a.created_at + 'Z').toLocaleString() %> ·
+        <%= a.admin_username ? '@' + a.admin_username : 'a deleted admin' %>
+        <%= a.action === 'suspend' ? 'suspended' : 'unsuspended' %>
+        @<%= a.target_username %><% if (a.note) { %>: <%= a.note %><% } %>
+      </li>
+    <% }) %>
+  </ul>
+</main>
+<%- include('../partials/footer') %>

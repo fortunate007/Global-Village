@@ -26,6 +26,8 @@ function middleware(req, res, next) {
   }
 
   if (!req.user) return next();
+  // A suspended account is logged out on its next request, whatever its session looks like
+  if (req.user.suspended_at) return req.logout((err) => next(err));
   if (stampOf(req) === (req.user.session_epoch || 0)) return next();
 
   // The password was changed (or other devices were logged out) after this session started

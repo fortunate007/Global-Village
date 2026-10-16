@@ -71,6 +71,7 @@ app.use('/', require('./routes/credentials'));
 app.use('/', require('./routes/recovery'));
 app.use('/', require('./routes/emailVerification'));
 app.use('/', require('./routes/admin'));
+app.use('/', require('./routes/adminUsers'));
 
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Not Found' });
