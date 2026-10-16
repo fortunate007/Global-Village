@@ -96,6 +96,7 @@ require('./schema/entities')(db);
 require('./schema/notifications')(db);
 require('./schema/safety')(db);
 require('./schema/session-epoch')(db);
+require('./schema/recovery')(db);
 require('./schema/reports-keep')(db);
 require('./schema/message-safety')(db);
 require('./schema/identity')(db);

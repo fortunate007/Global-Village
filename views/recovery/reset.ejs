@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Choose a new password</h2>
+  <p>8-72 characters. You will be logged out everywhere and asked to log in again.</p>
+  <form method="POST" action="/reset-password/<%= token %>">
+    <label>New password
+      <input type="password" name="password" required minlength="8" maxlength="72" autocomplete="new-password" autofocus>
+    </label>
+    <label>Repeat new password
+      <input type="password" name="confirmPassword" required minlength="8" maxlength="72" autocomplete="new-password">
+    </label>
+    <button>Set new password</button>
+  </form>
+</main>
+<%- include('../partials/footer') %>

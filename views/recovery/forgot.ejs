@@ -1,0 +1,13 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Forgot your password?</h2>
+  <p>Enter the email address you registered with. If it belongs to an account, we will send a link that works for 60 minutes.</p>
+  <form method="POST" action="/forgot-password">
+    <label>Email address
+      <input type="email" name="email" required maxlength="254" autocomplete="email" autofocus>
+    </label>
+    <button>Send reset link</button>
+    <a href="/login">Back to log in</a>
+  </form>
+</main>
+<%- include('../partials/footer') %>

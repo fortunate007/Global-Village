@@ -66,6 +66,7 @@ app.use('/', require('./routes/safety'));
 app.use('/', require('./routes/account'));
 app.use('/', require('./routes/export'));
 app.use('/', require('./routes/credentials'));
+app.use('/', require('./routes/recovery'));
 app.use('/', require('./routes/admin'));
 
 app.use((req, res) => {
