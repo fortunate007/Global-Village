@@ -1,4 +1,11 @@
 <%- include('../partials/header') %>
+<% const WORDS = {
+     suspend: 'suspended',
+     unsuspend: 'unsuspended',
+     report_resolve: 'resolved a report about',
+     report_dismiss: 'dismissed a report about',
+     post_remove: 'removed a post by',
+   }; %>
 <main>
   <h2>Moderation log</h2>
   <p><a href="/admin/users">Accounts</a> · <a href="/admin/reports">Reports</a></p>
@@ -6,11 +13,13 @@
   <% if (!actions.length) { %><p>Nothing has been logged yet.</p><% } %>
   <ul>
     <% actions.forEach(a => { %>
+      <%# "(deleted account)" is the name the service stores when the author's account no longer existed %>
+      <% const who = a.target_username === '(deleted account)' ? 'a deleted account' : '@' + a.target_username; %>
       <li>
         <%= new Date(a.created_at + 'Z').toLocaleString() %> ·
         <%= a.admin_username ? '@' + a.admin_username : 'a deleted admin' %>
-        <%= a.action === 'suspend' ? 'suspended' : 'unsuspended' %>
-        @<%= a.target_username %><% if (a.note) { %>: <%= a.note %><% } %>
+        <%= WORDS[a.action] || a.action %>
+        <%= who %><% if (a.note) { %>: <%= a.note %><% } %>
       </li>
     <% }) %>
   </ul>

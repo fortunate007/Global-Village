@@ -98,3 +98,54 @@ exports.recentActions = (limit = 50) =>
        ORDER BY a.id DESC LIMIT ?`
     )
     .all(limit);
+
+// ---- Report decisions ----
+
+const REPORT_ACTIONS = { resolve: 'report_resolve', dismiss: 'report_dismiss', remove: 'post_remove' };
+const DELETED_ACCOUNT = '(deleted account)';
+
+// Decides one open report and writes the log entry in the same transaction. The reporter is never
+// recorded: the entry holds the report number and its reason only.
+const handleReportTx = db.transaction((adminId, reportId, decision) => {
+  requireAdmin(adminId);
+
+  const report = Number.isInteger(reportId)
+    ? db.prepare("SELECT id, post_id, post_author_id, reason FROM reports WHERE id = ? AND status = 'open'").get(reportId)
+    : null;
+  if (!report) throw new ModerationError('Report not found or already handled.');
+  if (decision === 'remove' && !report.post_id) {
+    throw new ModerationError('That post is already deleted. Resolve or dismiss the report instead.');
+  }
+
+  const author = report.post_author_id
+    ? db.prepare('SELECT id, username FROM users WHERE id = ?').get(report.post_author_id)
+    : null;
+
+  // Removing a post also closes every other open report about it
+  const openAboutPost =
+    decision === 'remove'
+      ? db.prepare("SELECT COUNT(*) AS n FROM reports WHERE post_id = ? AND status = 'open'").get(report.post_id).n
+      : 1;
+
+  if (decision === 'remove') safety.removeReportedPost(adminId, report.id);
+  else safety.resolveReport(adminId, report.id, decision === 'resolve' ? 'resolved' : 'dismissed');
+
+  const note =
+    `Report #${report.id} (${report.reason})` +
+    (openAboutPost > 1 ? ` and ${openAboutPost - 1} more on the same post` : '');
+  logAction.run(
+    adminId,
+    REPORT_ACTIONS[decision],
+    author ? author.id : null,
+    author ? author.username : DELETED_ACCOUNT,
+    note
+  );
+
+  return { reportId: report.id, decision, postRemoved: decision === 'remove' };
+});
+
+exports.DELETED_ACCOUNT = DELETED_ACCOUNT;
+exports.handleReport = (adminId, reportId, decision) => {
+  if (!Object.prototype.hasOwnProperty.call(REPORT_ACTIONS, decision)) throw new ModerationError('Unknown decision.');
+  return handleReportTx(adminId, reportId, decision);
+};
