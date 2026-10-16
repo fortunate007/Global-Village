@@ -52,8 +52,11 @@ exports.requestReset = (emailInput) => {
   const email = asText(emailInput).trim();
   if (!email || email.length > 254) return { sent: false };
 
-  const user = db.prepare('SELECT id, username, email FROM users WHERE email = ? COLLATE NOCASE').get(email);
-  if (!user) return { sent: false };
+  const user = db
+    .prepare('SELECT id, username, email, email_pending_verification AS pending FROM users WHERE email = ? COLLATE NOCASE')
+    .get(email);
+  // An address nobody has confirmed might belong to someone else (a typo), so no reset link goes to it
+  if (!user || user.pending) return { sent: false };
 
   db.prepare("DELETE FROM password_resets WHERE expires_at < datetime('now', '-1 day')").run();
 

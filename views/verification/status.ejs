@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Email address</h2>
+
+  <% if (!pending) { %>
+    <p>Your account does not need email confirmation. Password reset links go to <strong><%= email %></strong>.</p>
+    <p><a href="/profile">Back to profile</a></p>
+  <% } else { %>
+    <p>We sent a confirmation link to <strong><%= email %></strong>. Open it and press the button to confirm the address.</p>
+    <p>Until it is confirmed, password reset links are not sent to this address.</p>
+
+    <h3>Did not get it?</h3>
+    <p>Check your spam folder, then ask for another link.</p>
+    <form method="POST" action="/account/verify-email/resend">
+      <button>Send the link again</button>
+    </form>
+
+    <h3>Wrong address?</h3>
+    <p>Fix a typo here. We will send the link to the new address and the old links stop working.</p>
+    <form method="POST" action="/account/email">
+      <label>New email address
+        <input type="email" name="newEmail" required maxlength="254" autocomplete="email">
+      </label>
+      <label>Your password
+        <input type="password" name="password" required autocomplete="current-password">
+      </label>
+      <button>Change address</button>
+    </form>
+  <% } %>
+</main>
+<%- include('../partials/footer') %>

@@ -31,6 +31,7 @@ app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(require('./middleware/sessionEpoch').middleware);
+app.use((req, res, next) => { res.locals.emailPending = Boolean(req.user ? req.user.email_pending_verification : 0); next(); });
 app.use(flash());
 app.use(touchLastSeen);
 
@@ -67,6 +68,7 @@ app.use('/', require('./routes/account'));
 app.use('/', require('./routes/export'));
 app.use('/', require('./routes/credentials'));
 app.use('/', require('./routes/recovery'));
+app.use('/', require('./routes/emailVerification'));
 app.use('/', require('./routes/admin'));
 
 app.use((req, res) => {

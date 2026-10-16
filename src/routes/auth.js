@@ -5,6 +5,7 @@ const db = require('../db');
 const { ensureGuest } = require('../middleware/auth');
 const { isValidUsername, isValidEmail, isValidPassword, isValidDisplayName } = require('../utils/validators');
 const { validate: passwordProblems } = require('../utils/passwordPolicy');
+const emailVerification = require('../services/emailVerificationService');
 
 const router = express.Router();
 
@@ -67,10 +68,17 @@ router.post('/register', ensureGuest, (req, res) => {
       )
       .run(username, email, hash, displayName && displayName.trim() ? displayName.trim() : username);
 
+    // Starts email confirmation for the new address (does nothing while testing unless switched on)
+    const verificationStarted = emailVerification.startForNewAccount(Number(info.lastInsertRowid));
+
     req.login({ id: info.lastInsertRowid }, (err) => {
       if (err) {
         req.flash('error', 'Account created, please log in.');
         return res.redirect('/login');
+      }
+      // Set after login, which starts a fresh session
+      if (verificationStarted) {
+        req.flash('success', 'Welcome! We sent a link to your email address. Open it to confirm the address.');
       }
       res.redirect('/users');
     });
