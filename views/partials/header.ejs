@@ -24,6 +24,8 @@
 <% } %>
         <a href="/users">People</a>
         <a href="/tags">Trends</a>
+        <a href="/search">Search</a>
+        <a href="/notifications">Notifications <span data-notification-badge><% if (locals.unreadNotifications) { %>(<%= locals.unreadNotifications %>)<% } %></span></a>
         <a href="/friends">Friends<% if (pendingRequests > 0) { %> <span class="badge"><%= pendingRequests %></span><% } %></a>
         <a href="/groups/new">New Group</a>
         <details class="usermenu">
@@ -35,7 +37,12 @@
           <div class="menu-panel">
             <a href="/profile/<%= currentUser.id %>">View profile</a>
             <a href="/profile">Edit profile</a>
+            <a href="/bookmarks">Bookmarks</a>
+            <a href="/mentions">Mentions</a>
             <a href="/account/security">Password and devices</a>
+            <a href="/account/verify-email">Email address</a>
+            <a href="/account/phone">Phone number</a>
+            <a href="/safety">Blocked and muted</a>
             <a href="/account/export">Download my data</a>
             <hr />
             <form action="/logout" method="POST">
