@@ -59,7 +59,7 @@ router.post(
   ensureAuth,
   passwordAttempts,
   sendLimit,
-  handle((req) => phones.setPhone(req.user.id, req.body.password, req.body.phone), 'We texted a code to that number. Enter it below.')
+  handle((req) => phones.setPhone(req.user.id, req.body.password, req.body.phone, req.body.phoneCountry), 'We texted a code to that number. Enter it below.')
 );
 router.post('/account/phone/verify', ensureAuth, verifyLimit, handle((req) => phones.confirm(req.user.id, req.body.code), 'Your phone number is verified.'));
 router.post('/account/phone/resend', ensureAuth, sendLimit, handle((req) => phones.resend(req.user.id), 'We sent a new code.'));
@@ -73,9 +73,9 @@ router.get('/forgot-password/phone', ensureGuest, (req, res) => {
 
 // The same answer whether or not the number belongs to an account
 router.post('/forgot-password/phone', ensureGuest, resetRequestLimit, (req, res) => {
-  const phone = phones.normalizePhone(req.body.phone);
+  const phone = phones.normalizePhone(req.body.phone, req.body.phoneCountry);
   if (!phone) {
-    req.flash('error', 'Enter a valid phone number, with the country code (+254...) or starting with 0.');
+    req.flash('error', 'Enter a valid phone number for the selected country, or type the full number starting with + and the country code.');
     return res.redirect('/forgot-password/phone');
   }
 

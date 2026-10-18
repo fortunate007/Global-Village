@@ -55,32 +55,35 @@ beforeEach(() => sms.clearOutbox());
 
 describe('normalizePhone', () => {
   test.each([
-    ['0712345678', '+254712345678'],
-    ['0712 345 678', '+254712345678'],
-    ['+254 712-345-678', '+254712345678'],
-    ['00254712345678', '+254712345678'],
-    ['0112345678', '+254112345678'],
-    ['  +254712345678  ', '+254712345678'],
-    ['+14155552671', '+14155552671'],
-  ])('%s becomes %s', (input, expected) => expect(phones.normalizePhone(input)).toBe(expected));
+    ['0712 345 678', undefined, '+254712345678'],
+    ['0712345678', 'KE', '+254712345678'],
+    ['712345678', 'KE', '+254712345678'],
+    ['+254 712-345-678', undefined, '+254712345678'],
+    ['00254712345678', undefined, '+254712345678'],
+    ['  +254712345678  ', 'US', '+254712345678'],
+    ['(213) 373-4253', 'US', '+12133734253'],
+    ['020 8765 4321', 'GB', '+442087654321'],
+    ['0802 123 4567', 'NG', '+2348021234567'],
+  ])('%j (country %s) becomes %s', (input, country, expected) => {
+    expect(phones.normalizePhone(input, country)).toBe(expected);
+  });
 
-  test.each([
-    '', '   ', '12345', '712345678', 'abc', '0812345678', '+254812345678', '+0123456789', '+1234',
-    'x'.repeat(30), '07123 45678 90123 45678 9012', '(+254)712345678', '+254 712 345 678 ext 5',
-  ])('%j is refused', (input) => expect(phones.normalizePhone(input)).toBeNull());
+  test.each(['', '   ', '12345', 'abc', '+0123456789', 'x'.repeat(40)])('%j is refused', (input) => {
+    expect(phones.normalizePhone(input)).toBeNull();
+  });
 
   test('anything that is not text is refused', () => {
     [undefined, null, 712345678, ['0712345678'], {}].forEach((value) => expect(phones.normalizePhone(value)).toBeNull());
   });
 
-  test('local numbers use the configured default country code', () => {
-    const saved = process.env.DEFAULT_PHONE_COUNTRY_CODE;
-    process.env.DEFAULT_PHONE_COUNTRY_CODE = '256';
+  test('numbers typed without a country use the configured default country', () => {
+    const saved = process.env.DEFAULT_PHONE_COUNTRY;
+    process.env.DEFAULT_PHONE_COUNTRY = 'UG';
     try {
       expect(phones.normalizePhone('0712345678')).toBe('+256712345678');
     } finally {
-      if (saved === undefined) delete process.env.DEFAULT_PHONE_COUNTRY_CODE;
-      else process.env.DEFAULT_PHONE_COUNTRY_CODE = saved;
+      if (saved === undefined) delete process.env.DEFAULT_PHONE_COUNTRY;
+      else process.env.DEFAULT_PHONE_COUNTRY = saved;
     }
   });
 
@@ -132,7 +135,7 @@ describe('adding a number', () => {
     process.env.PHONE_ALLOWED_COUNTRY_CODES = '254, 255';
     try {
       const user = makeUser();
-      const error = errorOf(() => phones.setPhone(user.id, PASSWORD, '+14155552671'));
+      const error = errorOf(() => phones.setPhone(user.id, PASSWORD, '+12133734253'));
       expect(error.code).toBe('invalid');
       expect(error.message).toMatch(/not supported/);
       expect(() => phones.setPhone(user.id, PASSWORD, local())).not.toThrow();

@@ -1,0 +1,5 @@
+<select name="phoneCountry" aria-label="Country of the phone number">
+  <% phoneCountries.forEach(function (c) { %>
+    <option value="<%= c.code %>"<%= c.code === selected ? ' selected' : '' %>><%= c.name %> (+<%= c.dial %>)</option>
+  <% }) %>
+</select>

@@ -72,7 +72,7 @@ router.post('/register', ensureGuest, (req, res) => {
     // Starts email confirmation for the new address (does nothing while testing unless switched on)
     const verificationStarted = emailVerification.startForNewAccount(Number(info.lastInsertRowid));
     // Optional phone number from the registration form. Never blocks registration.
-    const phoneOutcome = phoneVerification.startForNewAccount(Number(info.lastInsertRowid), req.body.phone);
+    const phoneOutcome = phoneVerification.startForNewAccount(Number(info.lastInsertRowid), req.body.phone, req.body.phoneCountry);
 
     req.login({ id: info.lastInsertRowid }, (err) => {
       if (err) {

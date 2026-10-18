@@ -21,28 +21,7 @@ const asText = (value) => (typeof value === 'string' ? value : '');
 const BAD_CODE = 'That code is not correct or has expired. Ask for a new one.';
 const TOO_MANY = 'Too many codes were sent recently. Please try again later.';
 
-// Turns what a person typed into +<country code><number>, or returns null. Numbers that start with 0 are read as
-// local numbers of DEFAULT_PHONE_COUNTRY_CODE (254 for Kenya). This is a sensible check, not a full numbering-plan
-// validator: it catches typos and junk, and the code that gets sent is the real proof.
-function normalizePhone(input) {
-  if (typeof input !== 'string') return null;
-  const text = input.trim();
-  if (!text || text.length > 25 || !/^[+\d\s().-]+$/.test(text)) return null;
-
-  const digits = text.replace(/\D/g, '');
-  if (!digits) return null;
-
-  const defaultCode = (process.env.DEFAULT_PHONE_COUNTRY_CODE || '254').replace(/\D/g, '') || '254';
-  let phone;
-  if (text.startsWith('+')) phone = `+${digits}`;
-  else if (digits.startsWith('00')) phone = `+${digits.slice(2)}`;
-  else if (digits.startsWith('0')) phone = `+${defaultCode}${digits.slice(1)}`;
-  else return null; // without a leading 0, + or 00 the country is unclear
-
-  if (!/^\+[1-9]\d{7,14}$/.test(phone)) return null;
-  if (phone.startsWith('+254') && !/^\+254[17]\d{8}$/.test(phone)) return null; // Kenyan mobile numbers
-  return phone;
-}
+const { normalizePhone } = require('../utils/phoneNumbers');
 
 // Optional allow-list, to stop texts to expensive foreign numbers: PHONE_ALLOWED_COUNTRY_CODES=254,255,256
 function countryAllowed(phone) {
@@ -131,14 +110,14 @@ exports.mask = mask;
 
 // Adds or changes the number on an account (needs the password) and texts a code to it.
 // The new number starts unverified, whatever the old one was.
-exports.setPhone = (userId, password, phoneInput) => {
+exports.setPhone = (userId, password, phoneInput, country) => {
   const user = db.prepare('SELECT id, password_hash, phone, phone_verified_at FROM users WHERE id = ?').get(userId);
   if (!user) throw new PhoneError('Account not found.', 'invalid');
   if (!bcrypt.compareSync(asText(password), user.password_hash)) throw new PhoneError('Incorrect password.', 'wrong_password');
 
-  const phone = normalizePhone(phoneInput);
+  const phone = normalizePhone(phoneInput, country);
   if (!phone) {
-    throw new PhoneError('Enter a valid phone number, with the country code (+254...) or starting with 0.', 'invalid');
+    throw new PhoneError('Enter a valid phone number for the selected country, or type the full number starting with + and the country code.', 'invalid');
   }
   if (!countryAllowed(phone)) throw new PhoneError('Phone numbers from that country are not supported yet.', 'invalid');
   if (user.phone === phone && user.phone_verified_at) {
@@ -156,10 +135,10 @@ exports.setPhone = (userId, password, phoneInput) => {
 
 // For the optional phone field on the registration form. Never throws and never blocks registration.
 // Returns null (nothing entered), 'sent', 'invalid', 'in_use' or 'unavailable'.
-exports.startForNewAccount = (userId, phoneInput) => {
+exports.startForNewAccount = (userId, phoneInput, country) => {
   if (typeof phoneInput !== 'string' || !phoneInput.trim()) return null;
 
-  const phone = normalizePhone(phoneInput);
+  const phone = normalizePhone(phoneInput, country);
   if (!phone || !countryAllowed(phone)) return 'invalid';
   try {
     if (!db.prepare('SELECT 1 FROM users WHERE id = ?').get(userId)) return 'unavailable';

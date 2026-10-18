@@ -20,10 +20,13 @@
   <% } %>
 
   <h3><%= phone ? 'Change number' : 'Add a number' %></h3>
-  <p>Use the country code (+254...) or start with 0. Changing the number means verifying the new one.</p>
+  <p>Choose the country, then type the number the way you would dial it there. You can also type the full number starting with + and the country code. Changing the number means verifying the new one.</p>
   <form method="POST" action="/account/phone">
+    <label>Country
+      <%- include('_country-select', { selected: defaultPhoneCountry }) %>
+    </label>
     <label>Phone number
-      <input type="tel" name="phone" required maxlength="25" autocomplete="tel" placeholder="0712 345 678">
+      <input type="tel" name="phone" required maxlength="30" autocomplete="tel-national" placeholder="Number, or the full number starting with +">
     </label>
     <label>Your password
       <input type="password" name="password" required autocomplete="current-password">
