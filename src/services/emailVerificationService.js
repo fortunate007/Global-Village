@@ -125,6 +125,8 @@ exports.resend = (userId) => {
     .get(userId);
   if (!user) throw new VerificationError('Account not found.', 'invalid');
   if (!user.pending) throw new VerificationError('Your email address is already confirmed.', 'not_pending');
+  // Accounts made with a phone number alone have a stand-in address that no email can reach
+  if (/@phone-signup\.invalid$/i.test(user.email)) throw new VerificationError('You have no email address yet. Add one first.', 'invalid');
 
   const message = db.transaction(() => prepareLink(user))();
   deliver(message);

@@ -255,3 +255,5 @@ exports.verifyResetCode = (phoneInput, codeInput) => {
   if (!userId) throw new PhoneError(BAD_CODE, 'bad_code');
   return userId;
 };
+
+exports.countryAllowed = countryAllowed;
