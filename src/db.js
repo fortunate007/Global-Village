@@ -108,4 +108,6 @@ require('./schema/identity')(db);
 require('./schema/edits')(db);
 require('./schema/search')(db);
 
+require('./migrations/runner').applyMigrations(db);
+
 module.exports = db;
