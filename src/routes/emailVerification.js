@@ -47,6 +47,7 @@ router.get('/account/verify-email', ensureAuthenticated, (req, res) => {
   res.render('verification/status', {
     title: 'Email address',
     email: req.user.email,
+    noEmail: /@phone-signup\.invalid$/i.test(req.user.email),
     pending: Boolean(req.user.email_pending_verification),
   });
 });

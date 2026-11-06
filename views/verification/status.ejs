@@ -2,7 +2,18 @@
 <main>
   <h2>Email address</h2>
 
-  <% if (!pending) { %>
+  <% if (noEmail) { %>
+    <p>You signed up with your phone number, so there is no email address on your account yet. Add one to be able to recover your account by email.</p>
+    <form method="POST" action="/account/email">
+      <label>Email address
+        <input type="email" name="newEmail" required maxlength="254" autocomplete="email">
+      </label>
+      <label>Your password
+        <input type="password" name="password" required autocomplete="current-password">
+      </label>
+      <button>Add email address</button>
+    </form>
+  <% } else if (!pending) { %>
     <p>Your account does not need email confirmation. Password reset links go to <strong><%= email %></strong>.</p>
     <p><a href="/profile">Back to profile</a></p>
   <% } else { %>

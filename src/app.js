@@ -53,6 +53,7 @@ app.use((req, res, next) => { res.locals.unreadNotifications = req.user ? requir
 app.use(require('./realtime/notificationRelay').middleware);
 app.use((req, res, next) => { res.locals.sidebar = require('./services/sidebarService').lazyFor(req.user); next(); });
 require('./middleware/security').applyLate(app);
+app.use('/', require('./routes/signup'));
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/profile'));
 app.use('/', require('./routes/users'));

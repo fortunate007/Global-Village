@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+<main>
+  <h2>Verify to finish signing up</h2>
+  <p>
+    We sent a 6-digit code to <strong><%= destination %></strong> by <%= method === 'email' ? 'email' : 'text message' %>.
+    Your account is created when you enter it. The code works for <%= minutes %> minutes.
+  </p>
+
+  <form method="POST" action="/register/verify">
+    <label>Code
+      <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" required autofocus>
+    </label>
+    <button>Create my account</button>
+  </form>
+
+  <% if (canResend) { %>
+    <form method="POST" action="/register/resend">
+      <button>Send a new code</button>
+    </form>
+  <% } %>
+
+  <form method="POST" action="/register/cancel">
+    <button>Use a different email or phone number</button>
+  </form>
+</main>
+<%- include('../partials/footer') %>

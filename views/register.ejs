@@ -20,7 +20,7 @@
       value="<%= typeof formData !== 'undefined' ? formData.displayName || '' : '' %>" />
 
     <label for="email">Email</label>
-    <input type="email" id="email" name="email" required
+    <input type="email" id="email" name="email"
       value="<%= typeof formData !== 'undefined' ? formData.email || '' : '' %>" />
 
     <label for="password">Password</label>
@@ -29,10 +29,16 @@
     <label for="confirmPassword">Confirm password</label>
     <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6" />
 
-    <label>Phone number (optional)
+    <label>Phone number (optional if you gave an email)
       <%- include('phone/_country-select', { selected: defaultPhoneCountry }) %>
       <input type="tel" name="phone" maxlength="30" autocomplete="tel-national" placeholder="Number, or the full number starting with +">
     </label>
+    <fieldset>
+      <legend>If you entered both, send my verification code by</legend>
+      <label><input type="radio" name="verifyBy" value="email" checked> Email</label>
+      <label><input type="radio" name="verifyBy" value="phone"> Text message</label>
+    </fieldset>
+    <p><small>You need an email address or a phone number. Your account is created after you enter the code we send.</small></p>
     <button type="submit" class="btn btn-primary">Create Account</button>
   </form>
 
