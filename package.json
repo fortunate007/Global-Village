@@ -10,7 +10,8 @@
     "start": "node src/app.js",
     "dev": "node src/app.js",
     "test": "NODE_ENV=test jest --runInBand",
-    "migrate:status": "node scripts/migrate.js status"
+    "migrate:status": "node scripts/migrate.js status",
+    "backup": "node scripts/backup.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

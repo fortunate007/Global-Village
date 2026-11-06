@@ -103,6 +103,7 @@ app.set('io', io);
 
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
+  require('./services/backupService').scheduleFromEnv(db);
   require('./services/uploadSweep').scheduleFromEnv(db);
   server.listen(PORT, () => {
     console.log(`Global Village running at http://localhost:${PORT}`);

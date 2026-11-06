@@ -11,3 +11,7 @@ src/public/uploads/chat/*
 
 src/public/uploads/posts/*
 !src/public/uploads/posts/.gitkeep
+data/backups/
+data/*.db
+data/*.db-shm
+data/*.db-wal
