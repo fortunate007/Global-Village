@@ -18,8 +18,9 @@
       <form method="POST" action="/posts/<%= post.id %>/delete" style="display:inline"><button>Delete</button></form>
     <% } %>
 
-    <form method="POST" action="/posts/<%= post.id %>/reply">
-      <textarea name="body" maxlength="<%= maxLength %>" required placeholder="Reply"></textarea>
+    <form method="POST" action="/posts/<%= post.id %>/reply" enctype="multipart/form-data">
+      <textarea name="body" maxlength="<%= maxLength %>" placeholder="Reply"></textarea>
+      <%- include('_image-fields') %>
       <button>Reply</button>
     </form>
     <form method="POST" action="/posts/<%= post.id %>/quote">

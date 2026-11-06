@@ -18,6 +18,7 @@ require('./middleware/security').applyEarly(app);
 
 app.set('view engine', 'ejs');
 app.locals.linkify = require('./utils/linkify').linkify;
+app.locals.imagesOf = require('./services/postImageService').imagesFor;
 app.locals.phoneCountries = require('./utils/phoneNumbers').countryList();
 app.locals.defaultPhoneCountry = require('./utils/phoneNumbers').defaultCountry();
 app.locals.editWindowMinutes = require('./services/postService').EDIT_WINDOW_MINUTES;
@@ -63,6 +64,7 @@ app.use('/', require('./routes/follows'));
 require('./schema/follow-safety')(require('./db'));
 app.use('/', require('./routes/messages'));
 app.use('/', require('./routes/groups'));
+app.use('/posts', require('./routes/postImages'));
 app.use('/posts', require('./routes/posts'));
 app.use('/', require('./routes/bookmarks'));
 app.use('/', require('./routes/entities'));
@@ -101,6 +103,7 @@ app.set('io', io);
 
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
+  require('./services/uploadSweep').scheduleFromEnv(db);
   server.listen(PORT, () => {
     console.log(`Global Village running at http://localhost:${PORT}`);
   });

@@ -1,0 +1,10 @@
+<% const pictures = imagesOf(postId); %>
+<% if (pictures.length) { %>
+  <div class="post-images post-images-<%= pictures.length %>">
+    <% pictures.forEach(function (picture) { %>
+      <a href="/uploads/posts/<%= picture.filename %>" target="_blank" rel="noopener">
+        <img src="/uploads/posts/<%= picture.filename %>" alt="<%= picture.alt_text %>" loading="lazy">
+      </a>
+    <% }) %>
+  </div>
+<% } %>

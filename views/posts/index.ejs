@@ -3,8 +3,9 @@
   <h2>Posts</h2>
 
   <% if (currentUser) { %>
-    <form method="POST" action="/posts">
-      <textarea name="body" maxlength="<%= maxLength %>" required placeholder="What's happening?"></textarea>
+    <form method="POST" action="/posts" enctype="multipart/form-data">
+      <textarea name="body" maxlength="<%= maxLength %>" placeholder="What's happening?"></textarea>
+      <%- include('_image-fields') %>
       <button>Post</button>
     </form>
   <% } else { %>

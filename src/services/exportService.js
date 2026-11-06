@@ -28,6 +28,14 @@ exports.buildExport = (userId, { limit = DEFAULT_LIMIT } = {}) => {
      FROM posts WHERE author_id = ? AND repost_of_id IS NULL ORDER BY id`,
     userId
   );
+  const postImages = list(
+    'post_images',
+    `SELECT pi.post_id, pi.position, pi.filename, pi.alt_text
+     FROM post_images pi JOIN posts p ON p.id = pi.post_id
+     WHERE p.author_id = ? ORDER BY pi.post_id, pi.position`,
+    userId
+  ).map((row) => ({ post_id: row.post_id, position: row.position, image_url: `/uploads/posts/${row.filename}`, alt_text: row.alt_text }));
+
   const postEditHistory = list(
     'post_edit_history',
     `SELECT pe.post_id, pe.body, pe.edited_at
@@ -150,6 +158,7 @@ exports.buildExport = (userId, { limit = DEFAULT_LIMIT } = {}) => {
     profile,
     posts,
     post_edit_history: postEditHistory,
+    post_images: postImages,
     reposts,
     likes,
     bookmarks,

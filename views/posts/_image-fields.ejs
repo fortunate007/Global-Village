@@ -1,0 +1,8 @@
+<fieldset class="image-fields">
+  <legend>Pictures (optional: up to 4, 5 MB each)</legend>
+  <input type="file" name="images" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
+  <p><small>Describe each picture, in the order you chose them, for people who cannot see it. Location data is removed from every picture.</small></p>
+  <% for (let i = 1; i <= 4; i += 1) { %>
+    <input type="text" name="alt" maxlength="420" placeholder="Description of picture <%= i %> (optional)">
+  <% } %>
+</fieldset>

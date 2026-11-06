@@ -10,6 +10,7 @@
     <% if (p.edited_at) { %>· <a href="/posts/<%= p.id %>/history">edited</a><% } %>
   </small>
   <% if (p.body) { %><p><%- linkify(p.body) %></p><% } %>
+  <%- include('post-images', { postId: p.id }) %>
   <% if (p.quoted) { %>
     <blockquote>
       <strong><a href="/users/<%= p.quoted.username %>"><%= p.quoted.display_name %></a></strong> <small>@<%= p.quoted.username %></small>
