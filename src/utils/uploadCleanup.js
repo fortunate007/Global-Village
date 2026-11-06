@@ -9,6 +9,7 @@ const REFERENCES = {
   avatars: `SELECT avatar_url AS url FROM users WHERE avatar_url IS NOT NULL
             UNION SELECT avatar_url FROM groups WHERE avatar_url IS NOT NULL`,
   chat: 'SELECT image_url AS url FROM messages WHERE image_url IS NOT NULL',
+  posts: 'SELECT filename AS url FROM post_images',
 };
 
 // Files named like uploads that no row refers to and that are older than the grace period.
